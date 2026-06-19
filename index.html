@@ -132,7 +132,7 @@
             align-items: center;
         }
 
-        /* 娃娃與包包總容器 */
+        /* 畫布舞台：維持寬高與畫布一致，讓 1000x1000 的大圖等比例縮放進來 */
         .doll-stage {
             position: relative;
             width: 100%;
@@ -261,10 +261,12 @@
 </head>
 <body>
 
+    <!-- 左側控制面板 -->
     <div class="control-panel">
         <h2>素體模擬器</h2>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 0;">
         
+        <!-- 新配置：素體類型 與 素體膚色 並排 -->
         <div class="row-group">
             <div class="control-group">
                 <label for="main-category">素體類型</label>
@@ -283,14 +285,17 @@
             </div>
         </div>
 
+        <!-- 體型款式 (獨立在下方) -->
         <div class="control-group">
             <label for="sub-category">體型款式 (每格1x1cm)</label>
             <select id="sub-category" onchange="updateDollImage()">
-                </select>
+                <!-- 由 JS 動態生成 -->
+            </select>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
 
+        <!-- 包包款式選擇 -->
         <div class="control-group">
             <label for="bag-style">包包款式 (側背)</label>
             <select id="bag-style" onchange="updateBagStyle()">
@@ -300,15 +305,19 @@
             </select>
         </div>
 
+        <!-- 動態產生的包包細節選單 -->
         <div id="dynamic-options" class="dynamic-group"></div>
     </div>
 
+    <!-- 右側顯示區域 -->
     <div class="display-area">
         <div class="canvas">
+            <!-- 畫布舞台：底層膚色塊 + 上層自 dolls/ 資料夾載入的挖空素體圖 -->
             <div class="doll-stage">
                 <div id="doll-skin" class="doll-skin-layer"></div>
-                <img id="doll-mask" class="doll-mask-img" src="body_ob11.png" alt="娃娃素體">
+                <img id="doll-mask" class="doll-mask-img" src="dolls/body_ob11.png" alt="娃娃素體">
                 
+                <!-- 包包配件系統 -->
                 <div class="bag-system">
                     <div id="strap" class="strap"></div>
                     <div id="bag" class="bag-unit cat-shape">
@@ -350,13 +359,13 @@
             { name: '原皮', hex: '#e5ba73' }
         ];
 
-        // 完美對應你的 GitHub 圖片檔名
+        // 加上 dolls/ 前綴路徑，完美適應你的資料夾結構
         const imageMapping = {
-            'OB11': 'body_ob11.png',
-            '黏土娃': 'body_Nendoroid_Doll.png',
-            '新 P9': 'body_p9.png',
-            '10cm': 'body_10cm.png',
-            '20cm': 'body_20cm.png'
+            'OB11': 'dolls/body_ob11.png',
+            '黏土娃': 'dolls/body_Nendoroid_Doll.png',
+            '新 P9': 'dolls/body_p9.png',
+            '10cm': 'dolls/body_10cm.png',
+            '20cm': 'dolls/body_20cm.png'
         };
 
         let currentMainColor = '#d4a373';
@@ -383,7 +392,7 @@
             updateDollImage();
         }
 
-        // 2. 切換款式時，直接更換你的去背 PNG 圖片路徑
+        // 2. 切換款式時換圖
         function updateDollImage() {
             const fileName = imageMapping[subCategory.value];
             if (fileName) {
