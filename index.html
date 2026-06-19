@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D 娃娃背包包模擬器</title>
     <style>
-        /* 基礎網頁樣式設定 */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -19,31 +18,46 @@
 
         /* 左側控制面板 */
         .control-panel {
-            width: 300px;
+            width: 320px;
             background-color: #ffffff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
         }
 
-        .control-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+        h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.5rem;
             color: #333;
         }
 
-        input[type="range"] {
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
             width: 100%;
         }
 
         .color-btns {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .color-btn {
@@ -53,6 +67,7 @@
             cursor: pointer;
             color: white;
             font-weight: bold;
+            min-width: 60px;
         }
 
         /* 右側顯示區域 */
@@ -68,11 +83,19 @@
             overflow: hidden;
         }
 
-        /* 畫布容器：固定在中央，方便物件絕對定位 */
+        /* 1*1CM 淺灰色線條背景畫布 */
+        /* 這裡假設網頁上的 1cm 大約等於 38 像素(px)，可以根據視覺效果自由調整比例 */
         .canvas {
             position: relative;
-            width: 400px;
-            height: 400px;
+            width: 500px;
+            height: 500px;
+            border: 2px solid #ccc;
+            background-color: #fafafa;
+            /* 建立 1cm * 1cm 的網格背景 */
+            background-image: 
+                linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+                linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+            background-size: 38px 38px; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -81,46 +104,68 @@
         /* 娃娃素體（粉紅色圓角矩形） */
         .doll {
             position: absolute;
-            background-color: #ffb6c1; /* 基礎粉紅色 */
-            border-radius: 20px;
-            transition: width 0.1s, height 0.1s; /* 讓縮放看起來平滑一點 */
+            background-color: #ffb6c1;
+            border-radius: 15px;
+            transition: all 0.2s ease; /* 讓切換尺寸時有平滑動畫 */
+            bottom: 114px; /* 讓娃娃對齊某個網格底部線條 */
         }
 
-        /* 包包主體（黃色小方塊） */
+        /* 包包主體 */
         .bag {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            background-color: #ffd700; /* 預設黃色 */
+            width: 50px;
+            height: 50px;
+            background-color: #ffd700;
             border-radius: 5px;
-            z-index: 10; /* 確保包包在娃娃上面 */
+            z-index: 10;
             display: flex;
             justify-content: center;
             align-items: flex-end;
             padding-bottom: 5px;
             box-sizing: border-box;
+            /* 預設在畫布中央附近 */
+            bottom: 180px; 
         }
 
         /* 包包細節區塊（前口袋） */
         .bag-detail {
-            width: 40px;
-            height: 25px;
-            background-color: #ff4500; /* 預設橘紅色細節 */
+            width: 34px;
+            height: 20px;
+            background-color: #ff4500;
             border-radius: 3px;
+            transition: background-color 0.2s;
         }
     </style>
 </head>
 <body>
 
+    <!-- 左側控制面板 -->
     <div class="control-panel">
         <h2>模擬器控制台</h2>
-        <hr>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 0;">
         
+        <!-- 大分支選擇 -->
         <div class="control-group">
-            <label for="doll-size">娃娃尺寸調整</label>
-            <input type="range" id="doll-size" min="100" max="300" value="200">
+            <label for="main-category">素體類型</label>
+            <select id="main-category" onchange="updateSubCategory()">
+                <option value="12分">12分娃</option>
+                <option value="棉花娃">棉花娃</option>
+            </select>
         </div>
 
+        <!-- 小分支選擇 -->
+        <div class="control-group">
+            <label for="sub-category">款式尺寸 (背景每格為1x1cm)</label>
+            <select id="sub-category" onchange="updateDollSize()">
+                <!-- 預設顯示 12分的選項 -->
+                <option value="GSC">GSC</option>
+                <option value="P8">P8</option>
+                <option value="新 P9">新 P9</option>
+                <option value="P10">P10</option>
+            </select>
+        </div>
+
+        <!-- 調整包包主體顏色 -->
         <div class="control-group">
             <label>包包主體顏色</label>
             <div class="color-btns">
@@ -130,6 +175,7 @@
             </div>
         </div>
 
+        <!-- 調整包包細節顏色 -->
         <div class="control-group">
             <label>包包細節（口袋）顏色</label>
             <div class="color-btns">
@@ -140,10 +186,13 @@
         </div>
     </div>
 
+    <!-- 右側顯示區域 -->
     <div class="display-area">
         <div class="canvas">
-            <div id="doll" class="doll" style="width: 200px; height: 200px;"></div>
+            <!-- 娃娃素體 (初始尺寸設為 GSC 的比例) -->
+            <div id="doll" class="doll" style="width: 76px; height: 190px;"></div>
             
+            <!-- 包包 -->
             <div id="bag" class="bag">
                 <div id="bag-detail" class="bag-detail"></div>
             </div>
@@ -151,26 +200,67 @@
     </div>
 
     <script>
-        // 取得網頁上的元件
+        const mainCategory = document.getElementById('main-category');
+        const subCategory = document.getElementById('sub-category');
         const doll = document.getElementById('doll');
-        const dollSizeSlider = document.getElementById('doll-size');
         const bag = document.getElementById('bag');
         const bagDetail = document.getElementById('bag-detail');
 
-        // 1. 監聽滑桿連動娃娃尺寸
-        dollSizeSlider.addEventListener('input', (e) => {
-            const size = e.target.value;
-            // 同時改變寬度與高度，讓它等比例放大縮小
-            doll.style.width = size + 'px';
-            doll.style.height = size + 'px';
-        });
+        // 定義各個款式的真實比例尺寸數據 (單位：px，以 38px = 1cm 換算)
+        // 這裡的高度與寬度是依據照片比例抓的概估值，之後你可以隨時找我微調精準公分數字
+        const sizeData = {
+            'GSC':   { width: 76,  height: 190 }, // 矮胖一點
+            'P8':    { width: 68,  height: 205 }, // 較瘦
+            '新 P9': { width: 72,  height: 215 }, // 微高
+            'P10':   { width: 84,  height: 235 }, // 最高大
+            '10cm':  { width: 90,  height: 114 }, // 棉花娃特色：矮胖圓潤
+            '15cm':  { width: 120, height: 171 },
+            '20cm':  { width: 152, height: 228 }
+        };
 
-        // 2. 改變包包主體顏色的功能
+        // 1. 當大分支切換時，改變小分支的下拉選單內容
+        function updateSubCategory() {
+            const selectedMain = mainCategory.value;
+            subCategory.innerHTML = ''; // 清空舊選項
+
+            if (selectedMain === '12分') {
+                const options = ['GSC', 'P8', '新 P9', 'P10'];
+                options.forEach(opt => {
+                    const el = document.createElement('option');
+                    el.value = opt;
+                    el.textContent = opt;
+                    subCategory.appendChild(el);
+                });
+            } else if (selectedMain === '棉花娃') {
+                const options = ['10cm', '15cm', '20cm'];
+                options.forEach(opt => {
+                    const el = document.createElement('option');
+                    el.value = opt;
+                    el.textContent = opt;
+                    subCategory.appendChild(el);
+                });
+            }
+            // 切換大分類後，自動更新一次娃娃尺寸
+            updateDollSize();
+        }
+
+        // 2. 當小分支切換時，連動改變畫面上娃娃的寬高
+        function updateDollSize() {
+            const selectedModel = subCategory.value;
+            const size = sizeData[selectedModel];
+            
+            if (size) {
+                doll.style.width = size.width + 'px';
+                doll.style.height = size.height + 'px';
+            }
+        }
+
+        // 3. 改變包包主體顏色
         function changeBagColor(color) {
             bag.style.backgroundColor = color;
         }
 
-        // 3. 改變包包細節顏色的功能
+        // 4. 改變包包細節顏色
         function changeDetailColor(color) {
             bagDetail.style.backgroundColor = color;
         }
