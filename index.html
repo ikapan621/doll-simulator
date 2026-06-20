@@ -142,6 +142,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
+            object-fit: contain;
             top: 0;
             left: 0;
             pointer-events: none;
@@ -281,12 +282,13 @@
         let currentCatPattern = 'pure';
         const CANVAS_SIZE_PX = 550;
         const BAG_IMAGE_RATIO = 397 / 316;
+        const TWELVE_SCALE_RATIO = 0.6767;
         const dollScalePresets = {
-            'OB11': { heightCm: 11, bodyLeftRatio: 0.3762, bodyTopRatio: 0.2060, bodyHeightRatio: 0.6767, bagXcm: 3.35, bagYcm: 6.70, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '黏土娃': { heightCm: 11, bodyLeftRatio: 0.3940, bodyTopRatio: 0.2567, bodyHeightRatio: 0.6306, bagXcm: 3.15, bagYcm: 6.35, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '新 P9': { heightCm: 11, bodyLeftRatio: 0.3540, bodyTopRatio: 0.2034, bodyHeightRatio: 0.7131, bagXcm: 3.45, bagYcm: 6.75, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '10cm': { heightCm: 10, bodyLeftRatio: 0.2848, bodyTopRatio: 0.2142, bodyHeightRatio: 0.6708, bagXcm: 4.55, bagYcm: 6.10, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '20cm': { heightCm: 20, bodyLeftRatio: 0.2765, bodyTopRatio: 0.1422, bodyHeightRatio: 0.7823, bagXcm: 8.25, bagYcm: 12.20, bagSizeCm: 3.0, bagRotationDeg: -4 }
+            'OB11': { heightCm: 11, scaleRatio: TWELVE_SCALE_RATIO, bodyLeftRatio: 0.3762, bodyTopRatio: 0.2060, bagXcm: 3.35, bagYcm: 6.70, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '黏土娃': { heightCm: 11, scaleRatio: TWELVE_SCALE_RATIO, bodyLeftRatio: 0.3940, bodyTopRatio: 0.2567, bagXcm: 3.15, bagYcm: 6.35, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '新 P9': { heightCm: 11, scaleRatio: TWELVE_SCALE_RATIO, bodyLeftRatio: 0.3540, bodyTopRatio: 0.2034, bagXcm: 3.45, bagYcm: 6.75, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '10cm': { heightCm: 10, scaleRatio: 0.6708, bodyLeftRatio: 0.2848, bodyTopRatio: 0.2142, bagXcm: 4.55, bagYcm: 6.10, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '20cm': { heightCm: 20, scaleRatio: 0.7823, bodyLeftRatio: 0.2765, bodyTopRatio: 0.1422, bagXcm: 8.25, bagYcm: 12.20, bagSizeCm: 3.0, bagRotationDeg: -4 }
         };
         let bagCalibration = { xCm: 3.35, yCm: 6.70, sizeCm: 3.0, rotationDeg: -4 };
         let activeDollValue = 'OB11';
@@ -454,7 +456,7 @@
 
         function applyBagPlacement() {
             const preset = dollScalePresets[subCategory.value] || dollScalePresets['OB11'];
-            const pxPerCm = (CANVAS_SIZE_PX * preset.bodyHeightRatio) / preset.heightCm;
+            const pxPerCm = (CANVAS_SIZE_PX * preset.scaleRatio) / preset.heightCm;
             const widthPx = bagCalibration.sizeCm * pxPerCm;
             const heightPx = widthPx / BAG_IMAGE_RATIO;
             const originX = CANVAS_SIZE_PX * preset.bodyLeftRatio;
