@@ -68,39 +68,20 @@
             font-size: 0.95rem;
         }
 
-        select {
+        select, input[type="color"] {
             padding: 8px;
             border-radius: 4px;
             border: 1px solid #ccc;
             font-size: 1rem;
             width: 100%;
             background-color: #fff;
+            box-sizing: border-box;
         }
 
-        /* 色票區塊樣式 */
-        .color-palette {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-
-        .color-swatch {
-            width: 35px;
-            height: 35px;
-            border-radius: 4px;
-            border: 2px solid #ccc;
+        input[type="color"] {
+            height: 40px;
             cursor: pointer;
-            transition: transform 0.1s, border-color 0.1s;
-        }
-
-        .color-swatch:hover {
-            transform: scale(1.1);
-        }
-
-        .color-swatch.active {
-            border-color: #333;
-            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+            padding: 2px;
         }
 
         /* 右側顯示區域 */
@@ -132,7 +113,7 @@
             align-items: center;
         }
 
-        /* 畫布舞台：維持寬高與畫布一致，讓 1000x1000 的大圖等比例縮放進來 */
+        /* 畫布舞台 */
         .doll-stage {
             position: relative;
             width: 100%;
@@ -142,17 +123,17 @@
             align-items: center;
         }
 
-        /* 膚色色塊基礎（底層遮色片） */
+        /* 底層膚色純色塊：負責透過你的 PNG 挖空處顯色 */
         .doll-skin-layer {
             position: absolute;
             width: 100%;
             height: 100%;
-            background-color: #fcd7b8; /* 預設普肌 */
-            transition: background-color 0.2s;
+            background-color: #fcd7b8; /* 預設普肌色碼 */
             z-index: 1;
+            transition: background-color 0.1s;
         }
 
-        /* 你的專屬挖空素體圖片層（疊在上層） */
+        /* 你的去背白底素體圖片（疊在最上層，挖空處會透出底層顏色） */
         .doll-mask-img {
             position: absolute;
             width: 100%;
@@ -214,6 +195,32 @@
         .bag-unit.cat-shape::before { left: 6px; }
         .bag-unit.cat-shape::after { right: 6px; }
 
+        /* 色票區塊樣式 */
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .color-swatch {
+            width: 35px;
+            height: 35px;
+            border-radius: 4px;
+            border: 2px solid #ccc;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.1s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .color-swatch.active {
+            border-color: #333;
+            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+        }
+
         .bag-patch {
             position: absolute;
             width: 100%;
@@ -266,7 +273,7 @@
         <h2>素體模擬器</h2>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 0;">
         
-        <!-- 新配置：素體類型 與 素體膚色 並排 -->
+        <!-- 並排配置：素體類型 與 快速膚色 -->
         <div class="row-group">
             <div class="control-group">
                 <label for="main-category">素體類型</label>
@@ -276,16 +283,22 @@
                 </select>
             </div>
             <div class="control-group">
-                <label for="skin-color">素體膚色</label>
-                <select id="skin-color" onchange="changeSkinColor()">
-                    <option value="普肌">普肌 (Whity)</option>
-                    <option value="白肌">白肌 (Super Whity)</option>
-                    <option value="黑肌">黑肌 (Sunlight)</option>
+                <label for="skin-preset">快速膚色</label>
+                <select id="skin-preset" onchange="applySkinPreset()">
+                    <option value="普肌" selected>普肌 (Natural)</option>
+                    <option value="白肌">白肌 (Super White)</option>
+                    <option value="自訂">💡 自訂色彩</option>
                 </select>
             </div>
         </div>
 
-        <!-- 體型款式 (獨立在下方) -->
+        <!-- 自訂膚色調色盤（點選自訂時可隨意拉顏色） -->
+        <div class="control-group" id="custom-skin-container" style="display: none;">
+            <label for="skin-color-picker">點擊調色盤或調整膚色：</label>
+            <input type="color" id="skin-color-picker" value="#fcd7b8" oninput="syncSkinColor(this.value)">
+        </div>
+
+        <!-- 體型款式 -->
         <div class="control-group">
             <label for="sub-category">體型款式 (每格1x1cm)</label>
             <select id="sub-category" onchange="updateDollImage()">
@@ -312,9 +325,10 @@
     <!-- 右側顯示區域 -->
     <div class="display-area">
         <div class="canvas">
-            <!-- 畫布舞台：底層膚色塊 + 上層自 dolls/ 資料夾載入的挖空素體圖 -->
             <div class="doll-stage">
+                <!-- 底層顏色塊 -->
                 <div id="doll-skin" class="doll-skin-layer"></div>
+                <!-- 上層你的去背遮色片圖 -->
                 <img id="doll-mask" class="doll-mask-img" src="dolls/body_ob11.png" alt="娃娃素體">
                 
                 <!-- 包包配件系統 -->
@@ -332,10 +346,11 @@
     </div>
 
     <script>
-        // DOM 物件
         const mainCategory = document.getElementById('main-category');
         const subCategory = document.getElementById('sub-category');
-        const skinColor = document.getElementById('skin-color');
+        const skinPreset = document.getElementById('skin-preset');
+        const customSkinContainer = document.getElementById('custom-skin-container');
+        const skinColorPicker = document.getElementById('skin-color-picker');
         const dollSkin = document.getElementById('doll-skin');
         const dollMask = document.getElementById('doll-mask');
         
@@ -348,7 +363,6 @@
         const hardwareR = document.getElementById('hardware-r');
         const dynamicOptions = document.getElementById('dynamic-options');
 
-        // 色票資料
         const paletteColors = [
             { name: '黃色', hex: '#d4a373' },
             { name: '綠色', hex: '#1a5f7a' },
@@ -358,15 +372,6 @@
             { name: '黑色', hex: '#212529' },
             { name: '原皮', hex: '#e5ba73' }
         ];
-
-        // 加上 dolls/ 前綴路徑，完美適應你的資料夾結構
-        const imageMapping = {
-            'OB11': 'dolls/body_ob11.png',
-            '黏土娃': 'dolls/body_Nendoroid_Doll.png',
-            'P9': 'dolls/body_p9.png',
-            '10cm': 'dolls/body_10cm.png',
-            '20cm': 'dolls/body_20cm.png'
-        };
 
         let currentMainColor = '#d4a373';
         let currentPatchColor = '#f8f9fa';
@@ -392,22 +397,42 @@
             updateDollImage();
         }
 
-        // 2. 切換款式時換圖
+        // 2. 切換款式與讀取去背圖片
         function updateDollImage() {
-            const fileName = imageMapping[subCategory.value];
+            const currentType = subCategory.value;
+            const imageMapping = {
+                'OB11': 'dolls/body_ob11.png',
+                '黏土娃': 'dolls/body_Nendoroid_Doll.png',
+                '新 P9': 'dolls/body_p9.png',
+                '10cm': 'dolls/body_10cm.png',
+                '20cm': 'dolls/body_20cm.png'
+            };
+
+            const fileName = imageMapping[currentType];
             if (fileName) {
                 dollMask.src = fileName;
             }
         }
 
-        // 3. 變更底層膚色
-        function changeSkinColor() {
-            const skins = { 
-                '普肌': '#fcd7b8', 
-                '白肌': '#fff0e5', 
-                '黑肌': '#8a5a44' 
-            };
-            dollSkin.style.backgroundColor = skins[skinColor.value];
+        // 3. 膚色控制機制：點擊快速選單切換底色色碼
+        function applySkinPreset() {
+            const preset = skinPreset.value;
+            if (preset === '普肌') {
+                customSkinContainer.style.display = 'none';
+                syncSkinColor('#fcd7b8');
+            } else if (preset === '白肌') {
+                customSkinContainer.style.display = 'none';
+                syncSkinColor('#fff0e5');
+            } else if (preset === '自訂') {
+                customSkinContainer.style.display = 'block';
+                syncSkinColor(skinColorPicker.value);
+            }
+        }
+
+        // 同步底層變色
+        function syncSkinColor(hexColor) {
+            dollSkin.style.backgroundColor = hexColor;
+            skinColorPicker.value = hexColor;
         }
 
         // 4. 包包款式切換
@@ -535,6 +560,7 @@
         window.onload = function() {
             updateSubCategory();
             updateBagStyle();
+            applySkinPreset();
         }
     </script>
 </body>
