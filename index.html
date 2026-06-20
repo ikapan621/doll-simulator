@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D 娃娃背包包模擬器 (修正版)</title>
+    <title>2D 娃娃背包包模擬器 (1:1 剪裁遮色片版)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -112,6 +112,7 @@
             padding: 20px;
         }
 
+        /* 畫布固定 550x550，內部所有圖層也必須完全 550x550，不允許網頁自己縮放或置中 */
         .canvas {
             position: relative;
             width: 550px;
@@ -128,51 +129,58 @@
 
         .doll-stage { position: relative; width: 100%; height: 100%; }
 
-        /* 娃娃層基本背景 */
+        /* 娃娃底色層 */
         .doll-skin-layer {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 550px;
+            height: 550px;
+            top: 0;
+            left: 0;
             background-color: #e3d2b9;
             z-index: 1;
         }
         
-        /* 圖層全滿原樣重疊 */
+        /* 1:1 圖層標準定位：寬高寫死 550px，起點全部靠左上 (0,0)，不進行任何拉伸 */
         .layer-img {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 550px;
+            height: 550px;
+            top: 0;
+            left: 0;
+            object-fit: fill;
+            pointer-events: none;
+        }
+
+        /* ==================== 🛠️ 核心：剪裁遮色片技術容器 ==================== */
+        /* 利用線稿 PNG 當作 Mask 遮罩，容器內填入什麼底色，就會被裁剪成什麼形狀 */
+        .mask-container {
+            position: absolute;
+            width: 550px;
+            height: 550px;
             top: 0;
             left: 0;
             pointer-events: none;
+            /* 預設遮罩混合模式 */
+            -webkit-mask-size: 550px 550px;
+            mask-size: 550px 550px;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: 0px 0px;
+            mask-position: 0px 0px;
         }
 
-        /* 獨立動態背帶 */
-        .dynamic-strap {
-            position: absolute;
-            height: 6px;
-            background-color: #d2b48c;
-            border: 1px solid #333;
-            box-sizing: border-box;
-            z-index: 9;
-            transform-origin: left center;
-            pointer-events: none;
+        /* 遮色片內部的顏色填充層（可任意更換 background-color） */
+        .color-fill-layer {
+            width: 100%;
+            height: 100%;
+            transition: background-color 0.1s;
         }
 
-        /* ==================== 核心加工特效濾鏡 ==================== */
-        
-        /* 1. 表情工藝特效 (基於黑線稿 cat_face_black.png 的轉換) */
-        .effect-emboss       { filter: contrast(0.5) brightness(1.5) opacity(0.35); mix-blend-mode: multiply; } /* 壓印：模擬凹陷陰影 */
-        .effect-foil-gold    { filter: sepia(1) saturate(10) hue-rotate(5deg) brightness(0.95); }              /* 燙金-金 */
-        .effect-foil-silver  { filter: grayscale(1) brightness(1.6) contrast(0.8); }                             /* 燙金-銀 */
-        .effect-foil-rose    { filter: sepia(1) saturate(4) hue-rotate(320deg) brightness(1.1); }               /* 燙金-玫瑰金 */
-        .effect-foil-black   { filter: brightness(0.1); }                                                       /* 燙金-黑 */
-
-        /* 2. 五金變色特效 (基於黑線稿 cat_hardware.png 的轉換) */
-        .hw-gold   { filter: sepia(1) saturate(8) hue-rotate(5deg) brightness(0.95); }  /* 金 */
-        .hw-silver { filter: grayscale(1) brightness(1.6); }                             /* 銀 */
-        .hw-bronze { filter: sepia(0.8) saturate(3) hue-rotate(15deg) brightness(0.6); } /* 古銅 */
-        .hw-black  { filter: brightness(0.15); }                                         /* 槍黑 */
+        /* 壓印工藝：模擬皮革凹陷陰影 */
+        .emboss-blend {
+            mix-blend-mode: multiply;
+            opacity: 0.35;
+        }
 
         @media (max-width: 768px) {
             body { flex-direction: column; padding-top: 50px; }
@@ -240,28 +248,28 @@
                 <div id="doll-skin" class="doll-skin-layer"></div>
                 <img id="doll-mask" class="layer-img" src="dolls/body_ob11.png" alt="娃娃素體">
                 
-                <div id="dynamic-strap" class="dynamic-strap"></div>
+                <div id="mask-main-container" class="mask-container" style="z-index:10;">
+                    <div id="fill-main-color" class="color-fill-layer"></div>
+                </div>
 
-                <img id="layer-main" class="layer-img" style="z-index:10;" src="" alt="">
-                <img id="layer-tuxedo" class="layer-img" style="z-index:11; display:none;" src="" alt="">
+                <div id="mask-tux-container" class="mask-container" style="z-index:11; display:none;">
+                    <div id="fill-tux-color" class="color-fill-layer"></div>
+                </div>
 
                 <img id="layer-calico" class="layer-img" style="display:none; z-index:12;" src="" alt="">
                 
-                <img id="layer-face" class="layer-img" style="z-index:13;" src="" alt="">
-                <img id="layer-hardware" class="layer-img" style="z-index:14;" src="" alt="">
+                <div id="mask-face-container" class="mask-container" style="z-index:13;">
+                    <div id="fill-face-color" class="color-fill-layer"></div>
+                </div>
+
+                <div id="mask-hardware-container" class="mask-container" style="z-index:14;">
+                    <div id="fill-hardware-color" class="color-fill-layer"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const positionConfig = {
-            'OB11':           { strapStartX: 235, strapStartY: 205, targetX: 295, targetY: 335 },
-            '黏土娃':         { strapStartX: 238, strapStartY: 215, targetX: 292, targetY: 330 },
-            '新 P9':          { strapStartX: 235, strapStartY: 210, targetX: 295, targetY: 332 },
-            '10cm':          { strapStartX: 242, strapStartY: 210, targetX: 282, targetY: 290 },
-            '20cm':          { strapStartX: 230, strapStartY: 215, targetX: 298, targetY: 355 }
-        };
-
         const paletteColors = [
             { name: '原皮色', hex: '#d4a373' },
             { name: '馬鞍棕', hex: '#b57c4c' },
@@ -272,10 +280,25 @@
             { name: '午夜藍', hex: '#1a5f7a' }
         ];
 
+        // 精準對應色彩對照表
+        const hardwareColors = {
+            'gold': '#ffd700',   // 金
+            'silver': '#e0e0e0', // 銀
+            'bronze': '#b8860b', // 古銅 (暗金)
+            'black': '#222222'   // 槍黑
+        };
+
+        const foilColors = {
+            'emboss': '#554433',      // 壓印底色 (配合混合模式)
+            'foil-gold': '#ffd700',   // 燙金-金
+            'foil-silver': '#e0e0e0', // 燙金-銀
+            'foil-rose': '#b76e79',   // 燙金-玫瑰金
+            'foil-black': '#111111'   // 燙金-黑
+        };
+
         let currentMainColor = '#d4a373';
         let currentTuxedoColor = '#f8f9fa';
-        let currentStrapColor = '#b57c4c';
-        let currentHardware = 'hw-gold';
+        let currentHardware = 'gold';
         let currentExpression = 'emboss'; 
         let currentCatPattern = 'pure';   
 
@@ -285,7 +308,6 @@
         const skinPreset = document.getElementById('skin-preset');
         const dollSkin = document.getElementById('doll-skin');
         const dollMask = document.getElementById('doll-mask');
-        const dynamicStrap = document.getElementById('dynamic-strap');
 
         function toggleSidebar() { sidebar.classList.toggle('open'); }
 
@@ -315,7 +337,6 @@
             dollMask.src = imageMapping[subCategory.value];
 
             renderControlPanel();
-            refreshStrapPosition();
             refreshLayers();
         }
 
@@ -334,10 +355,10 @@
                 <div class="control-group">
                     <label>五金顏色</label>
                     <select onchange="currentHardware=this.value; refreshLayers();">
-                        <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>金</option>
-                        <option value="hw-silver" ${currentHardware==='hw-silver'?'selected':''}>銀</option>
-                        <option value="hw-bronze" ${currentHardware==='hw-bronze'?'selected':''}>古銅</option>
-                        <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>槍黑</option>
+                        <option value="gold" ${currentHardware==='gold'?'selected':''}>金</option>
+                        <option value="silver" ${currentHardware==='silver'?'selected':''}>銀</option>
+                        <option value="bronze" ${currentHardware==='bronze'?'selected':''}>古銅</option>
+                        <option value="black" ${currentHardware==='black'?'selected':''}>槍黑</option>
                     </select>
                 </div>
                 <div class="control-group">
@@ -364,12 +385,6 @@
                 buildPalette('main-pal', 'main');
                 buildPalette('tux-pal', 'tuxedo');
             }
-
-            const strapGroup = document.createElement('div');
-            strapGroup.className = 'control-group';
-            strapGroup.innerHTML = `<label>皮背帶顏色</label><div class="color-palette" id="strap-pal"></div>`;
-            panel.appendChild(strapGroup);
-            buildPalette('strap-pal', 'strap');
         }
 
         function buildPalette(targetId, type) {
@@ -382,80 +397,75 @@
                 
                 if(type === 'main' && color.hex === currentMainColor) swatch.classList.add('active');
                 if(type === 'tuxedo' && color.hex === currentTuxedoColor) swatch.classList.add('active');
-                if(type === 'strap' && color.hex === currentStrapColor) swatch.classList.add('active');
 
                 swatch.onclick = function() {
                     target.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
                     swatch.classList.add('active');
                     if(type === 'main') { currentMainColor = color.hex; }
                     if(type === 'tuxedo') { currentTuxedoColor = color.hex; }
-                    if(type === 'strap') { currentStrapColor = color.hex; }
                     refreshLayers();
                 };
                 target.appendChild(swatch);
             });
         }
 
-        function refreshStrapPosition() {
-            const config = positionConfig[subCategory.value] || positionConfig['OB11'];
-            const sX = config.strapStartX; const sY = config.strapStartY;
-            const tX = config.targetX; const tY = config.targetY;
-            const deltaX = tX - sX; const deltaY = tY - sY;
-            const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-
-            dynamicStrap.style.left = sX + 'px'; dynamicStrap.style.top = sY + 'px';
-            dynamicStrap.style.width = length + 'px'; dynamicStrap.style.transform = `rotate(${angle}deg)`;
-        }
-
-        // 十六進制轉成 CSS drop-shadow 著色濾鏡公式
-        function hexToFilter(hex) {
-            return `drop-shadow(0px 0px 0px ${hex}) drop-shadow(0px 0px 0px ${hex}) brightness(0.9) contrast(1.2)`;
-        }
-
+        // ==================== 🎛️ 核心重疊渲染與剪裁遮色片邏輯 ====================
         function refreshLayers() {
             const imgPath = 'bags/cat/';
+            
+            // 獲取 DOM 容器
+            const mMainCont = document.getElementById('mask-main-container');
+            const fMainColor = document.getElementById('fill-main-color');
+            const mTuxCont = document.getElementById('mask-tux-container');
+            const fTuxColor = document.getElementById('fill-tux-color');
             const lCalico = document.getElementById('layer-calico');
-            const lMain = document.getElementById('layer-main');
-            const lTuxedo = document.getElementById('layer-tuxedo');
-            const lFace = document.getElementById('layer-face');
-            const lHardware = document.getElementById('layer-hardware');
+            
+            const mFaceCont = document.getElementById('mask-face-container');
+            const fFaceColor = document.getElementById('fill-face-color');
+            const mHwCont = document.getElementById('mask-hardware-container');
+            const fHwColor = document.getElementById('fill-hardware-color');
 
-            dynamicStrap.style.backgroundColor = currentStrapColor;
-
+            // 1. 處理主體、賓士與三花
             if (currentCatPattern === 'calico') {
                 lCalico.style.display = 'block';
                 lCalico.src = `${imgPath}cat_calico.png`;
-                lMain.style.display = 'none';
-                lTuxedo.style.display = 'none';
+                mMainCont.style.display = 'none';
+                mTuxCont.style.display = 'none';
             } else {
                 lCalico.style.display = 'none';
                 
-                // 直接對 1:1 去背圖片套用純色濾鏡，保證不滿版、不去背出錯
-                lMain.style.display = 'block';
-                lMain.src = `${imgPath}cat_main.png`;
-                lMain.style.filter = hexToFilter(currentMainColor);
+                // 【核心遮罩設定】把線稿圖檔直接指派為 CSS Mask
+                mMainCont.style.display = 'block';
+                mMainCont.style.webkitMaskImage = `url('${imgPath}cat_main.png')`;
+                mMainCont.style.maskImage = `url('${imgPath}cat_main.png')`;
+                fMainColor.style.backgroundColor = currentMainColor; // 填色
 
                 if (currentCatPattern === 'tuxedo') {
-                    lTuxedo.style.display = 'block';
-                    lTuxedo.src = `${imgPath}cat_patch_tuxedo.png`;
-                    lTuxedo.style.filter = hexToFilter(currentTuxedoColor);
+                    mTuxCont.style.display = 'block';
+                    mTuxCont.style.webkitMaskImage = `url('${imgPath}cat_patch_tuxedo.png')`;
+                    mTuxCont.style.maskImage = `url('${imgPath}cat_patch_tuxedo.png')`;
+                    fTuxColor.style.backgroundColor = currentTuxedoColor; // 填色
                 } else {
-                    lTuxedo.style.display = 'none';
+                    mTuxCont.style.display = 'none';
                 }
             }
 
-            // 表情加工連動
-            lFace.src = `${imgPath}cat_face_black.png`;
-            if (currentExpression === 'emboss') { lFace.className = "layer-img effect-emboss"; }
-            else if (currentExpression === 'foil-gold') { lFace.className = "layer-img effect-foil-gold"; }
-            else if (currentExpression === 'foil-silver') { lFace.className = "layer-img effect-foil-silver"; }
-            else if (currentExpression === 'foil-rose') { lFace.className = "layer-img effect-foil-rose"; }
-            else if (currentExpression === 'foil-black') { lFace.className = "layer-img effect-foil-black"; }
+            // 2. 表情工藝【剪裁遮色片連動】
+            mFaceCont.style.webkitMaskImage = `url('${imgPath}cat_face_black.png')`;
+            mFaceCont.style.maskImage = `url('${imgPath}cat_face_black.png')`;
+            fFaceColor.style.backgroundColor = foilColors[currentExpression];
+            
+            // 如果是壓印加工，套用正片疊底混合模式模擬皮革凹陷陰影
+            if (currentExpression === 'emboss') {
+                mFaceCont.className = "mask-container emboss-blend";
+            } else {
+                mFaceCont.className = "mask-container";
+            }
 
-            // 五金變色連動
-            lHardware.src = `${imgPath}cat_hardware.png`;
-            lHardware.className = `layer-img ${currentHardware}`;
+            // 3. 五金顏色【剪裁遮色片連動】
+            mHwCont.style.webkitMaskImage = `url('${imgPath}cat_hardware.png')`;
+            mHwCont.style.maskImage = `url('${imgPath}cat_hardware.png')`;
+            fHwColor.style.backgroundColor = hardwareColors[currentHardware];
         }
 
         window.onload = function() {
