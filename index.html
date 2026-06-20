@@ -282,14 +282,15 @@
         let currentCatPattern = 'pure';
         const STANDARD_CANVAS_SIZE_PX = 550;
         const LARGE_CANVAS_SIZE_PX = Math.round(STANDARD_CANVAS_SIZE_PX * (3262 / 2254));
-        const STANDARD_PX_PER_CM = (STANDARD_CANVAS_SIZE_PX * 0.6767) / 11;
+        const OB11_REFERENCE_HEIGHT_CM = 12.5;
+        const STANDARD_PX_PER_CM = (STANDARD_CANVAS_SIZE_PX * 0.6767) / OB11_REFERENCE_HEIGHT_CM;
         const BAG_IMAGE_RATIO = 397 / 316;
         const dollScalePresets = {
-            'OB11': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.3762, bodyTopRatio: 0.2060, bagXcm: 3.35, bagYcm: 6.70, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '黏土娃': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.3940, bodyTopRatio: 0.2567, bagXcm: 3.15, bagYcm: 6.35, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '新 P9': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.3540, bodyTopRatio: 0.2034, bagXcm: 3.45, bagYcm: 6.75, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '10cm': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.2848, bodyTopRatio: 0.2142, bagXcm: 5.40, bagYcm: 8.60, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '20cm': { canvasSizePx: LARGE_CANVAS_SIZE_PX, bodyLeftRatio: 0.2765, bodyTopRatio: 0.1422, bagXcm: 8.25, bagYcm: 12.20, bagSizeCm: 3.0, bagRotationDeg: -4 }
+            'OB11': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.3762, bodyTopRatio: 0.2060, bagXcm: 3.81, bagYcm: 7.61, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '黏土娃': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.3940, bodyTopRatio: 0.2567, bagXcm: 3.58, bagYcm: 7.21, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '新 P9': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.3540, bodyTopRatio: 0.2034, bagXcm: 3.92, bagYcm: 7.67, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '10cm': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, bodyLeftRatio: 0.2848, bodyTopRatio: 0.2142, bagXcm: 6.13, bagYcm: 9.77, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            '20cm': { canvasSizePx: LARGE_CANVAS_SIZE_PX, bodyLeftRatio: 0.2765, bodyTopRatio: 0.1422, bagXcm: 9.37, bagYcm: 13.86, bagSizeCm: 3.0, bagRotationDeg: -4 }
         };
         let bagCalibration = { xCm: 3.35, yCm: 6.70, sizeCm: 3.0, rotationDeg: -4 };
         let activeDollValue = 'OB11';
