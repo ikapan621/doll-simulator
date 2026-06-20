@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D 娃娃背包包模擬器</title>
+    <title>2D 娃娃背包包模擬器 V2</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,7 +33,6 @@
             box-sizing: border-box;
         }
 
-        /* 展開/收合側欄按鈕 */
         .toggle-btn {
             background-color: #ffb6c1;
             color: #fff;
@@ -43,13 +42,9 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.9rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .toggle-btn:hover {
-            background-color: #ffa0b0;
         }
 
-        /* 左側控制面板 */
+        /* 控制面板 */
         .control-panel {
             width: 360px;
             min-width: 360px;
@@ -64,7 +59,6 @@
             transition: transform 0.3s ease;
         }
 
-        /* 側欄內部的關閉按鈕 */
         .close-sidebar-btn {
             display: none;
             background-color: #ccc;
@@ -72,34 +66,15 @@
             border: none;
             padding: 6px 12px;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
             align-self: flex-end;
+            cursor: pointer;
         }
 
-        h2 {
-            margin: 0 0 5px 0;
-            font-size: 1.5rem;
-            color: #333;
-        }
-
-        /* 橫向並排的群組配置 */
-        .row-group {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .row-group .control-group {
-            flex: 1;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
+        h2 { margin: 0 0 5px 0; font-size: 1.4rem; color: #333; }
+        .row-group { display: flex; gap: 12px; width: 100%; }
+        .row-group .control-group { flex: 1; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        
         .dynamic-group {
             background-color: #f9f9f9;
             padding: 12px;
@@ -110,105 +85,60 @@
             gap: 12px;
         }
 
-        label {
-            font-weight: bold;
-            color: #555;
-            font-size: 0.95rem;
-        }
+        label { font-weight: bold; color: #555; font-size: 0.9rem; }
+        select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.95rem; background-color: #fff; }
 
-        select, input[type="color"] {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 1rem;
-            width: 100%;
-            background-color: #fff;
-            box-sizing: border-box;
-        }
-
-        input[type="color"] {
-            height: 40px;
-            cursor: pointer;
-            padding: 2px;
-        }
-
-        /* 色票區塊樣式 */
-        .color-palette {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-
+        /* 色票樣式 */
+        .color-palette { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
         .color-swatch {
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             border-radius: 4px;
             border: 2px solid #ccc;
             cursor: pointer;
-            transition: transform 0.1s, border-color 0.1s;
+            transition: transform 0.1s;
         }
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.active { border-color: #333; box-shadow: 0 0 4px rgba(0,0,0,0.3); }
 
-        .color-swatch:hover {
-            transform: scale(1.1);
-        }
-
-        .color-swatch.active {
-            border-color: #333;
-            box-shadow: 0 0 4px rgba(0,0,0,0.3);
-        }
-
-        /* 右側顯示區域 */
+        /* 右側畫布區 */
         .display-area {
             flex: 1;
             background-color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
             overflow: auto;
             padding: 20px;
         }
 
-        /* 1*1CM 網格畫布 (同步 PS 118px 基準) */
         .canvas {
             position: relative;
-            width: 500px;
-            height: 500px;
-            min-width: 500px;
-            min-height: 500px;
+            width: 550px;
+            height: 550px;
+            min-width: 550px;
+            min-height: 550px;
             border: 2px solid #ccc;
             background-color: #fafafa;
             background-image: 
                 linear-gradient(to right, #e8e8e8 1px, transparent 1px),
                 linear-gradient(to bottom, #e8e8e8 1px, transparent 1px);
-            background-size: 118px 118px; 
+            background-size: 118px 118px; /* 1*1CM 基準 */
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* 畫布舞台 */
-        .doll-stage {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        .doll-stage { position: relative; width: 100%; height: 100%; }
 
-        /* 底層膚色純色塊 */
+        /* 娃娃層 */
         .doll-skin-layer {
             position: absolute;
             width: 100%;
             height: 100%;
-            background-color: #e3d2b9; /* 預設使用你提供的新普肌色碼 */
+            background-color: #e3d2b9;
             z-index: 1;
-            transition: background-color 0.1s;
         }
-
-        /* 上層自 dolls/ 資料夾載入的挖空素體圖 */
         .doll-mask-img {
             position: absolute;
             width: 100%;
@@ -218,157 +148,116 @@
             pointer-events: none;
         }
 
-        /* 包包系統總容器 */
-        .bag-system {
+        /* 獨立動態背帶 */
+        .dynamic-strap {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
+            height: 6px;
+            background-color: #d2b48c;
+            border: 1px solid #333;
+            box-sizing: border-box;
+            z-index: 9;
+            transform-origin: left center;
             pointer-events: none;
         }
 
-        /* 斜背帶線條 */
-        .strap {
+        /* 包包主容器 */
+        .bag-container {
             position: absolute;
-            width: 140px;
-            height: 5px;
-            background-color: #d2b48c; 
-            top: 45%;
-            left: 20%;
-            transform: rotate(35deg);
-            transform-origin: left center;
-            transition: background-color 0.2s;
-            border: 1px solid #4a4a4a;
-            box-sizing: border-box;
+            width: 105px;  /* 對應高精細包包比例 */
+            height: 90px;
+            z-index: 10;
+            pointer-events: none;
+            transition: left 0.2s, top 0.2s;
         }
 
-        /* 固定在側邊的包包本體 */
-        .bag-unit {
-            position: absolute;
-            right: 40px;
-            bottom: 120px;
-            width: 70px;
-            height: 60px;
-            background-color: #ffd700;
-            border: 2px solid #4a4a4a;
-            transition: all 0.2s;
-        }
-
-        .bag-unit.cat-shape {
-            border-radius: 50% 50% 40% 40%;
-        }
-        .bag-unit.cat-shape::before, .bag-unit.cat-shape::after {
-            content: '';
-            position: absolute;
-            top: -6px;
-            width: 0;
-            height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 12px solid #4a4a4a;
-        }
-        .bag-unit.cat-shape::before { left: 6px; }
-        .bag-unit.cat-shape::after { right: 6px; }
-
-        .bag-patch {
+        /* 包包各圖層通用樣式 */
+        .bag-layer {
             position: absolute;
             width: 100%;
             height: 100%;
             top: 0;
             left: 0;
-            background-color: transparent;
-            transition: all 0.2s;
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
         }
 
-        .bag-unit.cat-shape .bag-patch.active-patch {
-            background-color: #ffffff;
-            clip-path: polygon(0% 100%, 100% 100%, 100% 60%, 70% 40%, 50% 70%, 30% 40%, 0% 60%);
+        /* 顏色渲染模式：利用 mix-blend-mode 讓白色區塊染上底色並保留黑線 */
+        .layer-render {
+            mix-blend-mode: multiply;
         }
 
-        /* 五金配件 */
-        .hardware {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #ffd700; 
-            top: 15px;
-            left: -5px;
-            border: 1px solid #4a4a4a;
-            z-index: 12;
-        }
-        .hardware.right {
-            left: auto;
-            right: -5px;
+        /* 壓印工藝特效 */
+        .face-emboss-effect {
+            mix-blend-mode: multiply;
+            opacity: 0.25; /* 讓黑色線條隱隱約約融入皮色，形成精緻的凹陷烙印感 */
         }
 
-        .bag-text-label {
-            position: absolute;
-            bottom: -22px;
-            width: 100%;
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #333;
-            background: rgba(255,255,255,0.8);
-            border-radius: 3px;
-        }
+        /* 五金專屬進階金屬濾鏡 */
+        .hw-gold { filter: url(#gold-filter); }
+        .hw-silver { filter: url(#silver-filter); }
+        .hw-bronze { filter: url(#bronze-filter); }
+        .hw-black { filter: brightness(0.1); }
+        .hw-rose { filter: url(#rose-gold-filter); }
 
-        /* 手機與平版 RWD 樣式覆蓋 */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-                padding-top: 50px;
-            }
-
-            .mobile-header {
-                display: flex;
-            }
-
+            body { flex-direction: column; padding-top: 50px; }
+            .mobile-header { display: flex; }
             .control-panel {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                width: 300px;
-                min-width: 300px;
-                transform: translateX(-100%);
-                box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+                position: fixed; top: 0; left: 0; height: 100vh; width: 300px;
+                transform: translateX(-100%); box-shadow: 4px 0 10px rgba(0,0,0,0.2);
             }
-
-            .control-panel.open {
-                transform: translateX(0);
-            }
-
-            .close-sidebar-btn {
-                display: block;
-            }
-
-            .display-area {
-                padding: 10px;
-                width: 100%;
-                height: calc(100vh - 50px);
-                align-items: flex-start;
-            }
+            .control-panel.open { transform: translateX(0); }
+            .close-sidebar-btn { display: block; }
+            .display-area { width: 100%; height: calc(100vh - 50px); align-items: flex-start; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 手機版頂部工具列 -->
+    <svg style="position: absolute; width: 0; height: 0;">
+        <defs>
+            <filter id="gold-filter">
+                <feComponentTransfer>
+                    <feFuncR type="linear" slope="0" replace="1"/>
+                    <feFuncG type="linear" slope="0" replace="0.75"/>
+                    <feFuncB type="linear" slope="0" replace="0.2"/>
+                </feComponentTransfer>
+                <feComponentTransfer><feFuncA type="linear" slope="1"/></feComponentTransfer>
+            </filter>
+            <filter id="silver-filter">
+                <feComponentTransfer>
+                    <feFuncR type="linear" slope="0" replace="0.75"/>
+                    <feFuncG type="linear" slope="0" replace="0.75"/>
+                    <feFuncB type="linear" slope="0" replace="0.78"/>
+                </feComponentTransfer>
+            </filter>
+            <filter id="bronze-filter">
+                <feComponentTransfer>
+                    <feFuncR type="linear" slope="0" replace="0.6"/>
+                    <feFuncG type="linear" slope="0" replace="0.45"/>
+                    <feFuncB type="linear" slope="0" replace="0.25"/>
+                </feComponentTransfer>
+            </filter>
+            <filter id="rose-gold-filter">
+                <feComponentTransfer>
+                    <feFuncR type="linear" slope="0" replace="0.85"/>
+                    <feFuncG type="linear" slope="0" replace="0.62"/>
+                    <feFuncB type="linear" slope="0" replace="0.62"/>
+                </feComponentTransfer>
+            </filter>
+        </defs>
+    </svg>
+
     <div class="mobile-header">
         <button class="toggle-btn" onclick="toggleSidebar()">☰ 選單設定</button>
-        <span style="margin-left: 15px; font-weight: bold; color: #555;">2D 模擬器</span>
     </div>
 
-    <!-- 左側控制面板 -->
     <div class="control-panel" id="sidebar">
         <button class="close-sidebar-btn" onclick="toggleSidebar()">✕ 收起選單</button>
-        
-        <h2>素體模擬器</h2>
+        <h2>素體配件模擬器</h2>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 0;">
         
-        <!-- 並排配置 -->
         <div class="row-group">
             <div class="control-group">
                 <label for="main-category">素體類型</label>
@@ -380,127 +269,110 @@
             <div class="control-group">
                 <label for="skin-preset">快速膚色</label>
                 <select id="skin-preset" onchange="applySkinPreset()">
-                    <option value="普肌" selected>普肌 (Natural)</option>
-                    <option value="白肌">白肌 (Super White)</option>
-                    <option value="自訂">💡 自訂色彩</option>
+                    <option value="普肌" selected>普肌</option>
+                    <option value="白肌">白肌</option>
                 </select>
             </div>
         </div>
 
-        <!-- 自訂膚色調色盤 -->
-        <div class="control-group" id="custom-skin-container" style="display: none;">
-            <label for="skin-color-picker">點擊調色盤調整膚色：</label>
-            <input type="color" id="skin-color-picker" value="#e3d2b9" oninput="syncSkinColor(this.value)">
-        </div>
-
-        <!-- 體型款式 -->
         <div class="control-group">
-            <label for="sub-category">體型款式 (每格1x1cm)</label>
-            <select id="sub-category" onchange="updateDollImage()">
-                <!-- 由 JS 動態生成 -->
-            </select>
+            <label for="sub-category">體型款式</label>
+            <select id="sub-category" onchange="onDollOrBagChange()">
+                </select>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
 
-        <!-- 包包款式選擇 -->
         <div class="control-group">
-            <label for="bag-style">包包款式 (側背)</label>
-            <select id="bag-style" onchange="updateBagStyle()">
-                <option value="貓貓包" selected>貓貓包</option>
-                <option value="吐司包">吐司包</option>
-                <option value="飲料背帶">飲料背帶</option>
+            <label for="bag-style">包包款式</label>
+            <select id="bag-style" onchange="onDollOrBagChange()">
+                <option value="cat" selected>萬用貓貓包</option>
             </select>
         </div>
 
-        <!-- 動態產生的包包細節選單 -->
-        <div id="dynamic-options" class="dynamic-group"></div>
+        <div id="dynamic-options" class="dynamic-group">
+            </div>
     </div>
 
-    <!-- 右側顯示區域 -->
     <div class="display-area">
         <div class="canvas">
             <div class="doll-stage">
-                <!-- 底層顏色塊 -->
                 <div id="doll-skin" class="doll-skin-layer"></div>
-                <!-- 上層去背遮色片圖 -->
                 <img id="doll-mask" class="doll-mask-img" src="dolls/body_ob11.png" alt="娃娃素體">
                 
-                <!-- 包包配件系統 -->
-                <div class="bag-system">
-                    <div id="strap" class="strap"></div>
-                    <div id="bag" class="bag-unit cat-shape">
-                        <div id="hardware-l" class="hardware"></div>
-                        <div id="hardware-r" class="hardware right"></div>
-                        <div id="bag-patch" class="bag-patch"></div>
-                        <div id="bag-text" class="bag-text-label">貓貓包 (純色)</div>
-                    </div>
+                <div id="dynamic-strap" class="dynamic-strap"></div>
+
+                <div id="bag-container" class="bag-container">
+                    <div id="layer-calico" class="bag-layer" style="display:none;"></div>
+                    <div id="layer-main-bg" class="bag-layer" style="background-color:transparent;"></div>
+                    <div id="layer-main" class="bag-layer layer-render"></div>
+                    <div id="layer-tuxedo-bg" class="bag-layer" style="background-color:transparent; display:none;"></div>
+                    <div id="layer-tuxedo" class="bag-layer layer-render" style="display:none;"></div>
+                    <div id="layer-face" class="bag-layer"></div>
+                    <div id="layer-hardware" class="bag-layer"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // 1. 各素體與包包的「智慧定位對照表」
+        // 包含包包在畫布上的中心點(x, y)，以及背帶起點(從肩膀拉到包包)
+        const positionConfig = {
+            'OB11':           { bagX: 350, bagY: 340, strapStartX: 235, strapStartY: 205 },
+            '黏土娃':         { bagX: 345, bagY: 330, strapStartX: 238, strapStartY: 215 },
+            '新 P9':          { bagX: 350, bagY: 335, strapStartX: 235, strapStartY: 210 },
+            '10cm':          { bagX: 335, bagY: 295, strapStartX: 242, strapStartY: 210 },
+            '20cm':          { bagX: 355, bagY: 360, strapStartX: 230, strapStartY: 215 }
+        };
+
+        const paletteColors = [
+            { name: '原皮色', hex: '#d4a373' },
+            { name: '馬鞍棕', hex: '#b57c4c' },
+            { name: '櫻花粉', hex: '#ffb6c1' },
+            { name: '經典黑', hex: '#212529' },
+            { name: '象牙白', hex: '#f8f9fa' },
+            { name: '復古紅', hex: '#ae2012' },
+            { name: '午夜藍', hex: '#1a5f7a' }
+        ];
+
+        // 狀態管理
+        let currentMainColor = '#d4a373';
+        let currentTuxedoColor = '#f8f9fa';
+        let currentStrapColor = '#b57c4c';
+        let currentHardware = 'hw-gold';
+        let currentExpression = 'print'; // print(一般印刷) 或 emboss(純壓印)
+        let currentCatPattern = 'pure';   // pure, tuxedo, calico
+
         const sidebar = document.getElementById('sidebar');
         const mainCategory = document.getElementById('main-category');
         const subCategory = document.getElementById('sub-category');
         const skinPreset = document.getElementById('skin-preset');
-        const customSkinContainer = document.getElementById('custom-skin-container');
-        const skinColorPicker = document.getElementById('skin-color-picker');
         const dollSkin = document.getElementById('doll-skin');
         const dollMask = document.getElementById('doll-mask');
-        
-        const bagStyle = document.getElementById('bag-style');
-        const bag = document.getElementById('bag');
-        const bagPatch = document.getElementById('bag-patch');
-        const bagText = document.getElementById('bag-text');
-        const strap = document.getElementById('strap');
-        const hardwareL = document.getElementById('hardware-l');
-        const hardwareR = document.getElementById('hardware-r');
-        const dynamicOptions = document.getElementById('dynamic-options');
+        const dynamicStrap = document.getElementById('dynamic-strap');
+        const bagContainer = document.getElementById('bag-container');
 
-        const paletteColors = [
-            { name: '黃色', hex: '#d4a373' },
-            { name: '綠色', hex: '#1a5f7a' },
-            { name: '紅色', hex: '#ae2012' },
-            { name: '玫瑰', hex: '#9b2226' },
-            { name: '白色', hex: '#f8f9fa' },
-            { name: '黑色', hex: '#212529' },
-            { name: '原皮', hex: '#e5ba73' }
-        ];
+        function toggleSidebar() { sidebar.classList.toggle('open'); }
 
-        let currentMainColor = '#d4a373';
-        let currentPatchColor = '#f8f9fa';
-
-        // 控制手機版側欄切換
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-        }
-
-        // 1. 大分類切換
         function updateSubCategory() {
             const selectedMain = mainCategory.value;
             subCategory.innerHTML = '';
-
-            if (selectedMain === '12分') {
-                const opts = ['OB11', '黏土娃', '新 P9'];
-                opts.forEach(opt => {
-                    let el = document.createElement('option'); el.value = opt; el.textContent = opt;
-                    subCategory.appendChild(el);
-                });
-            } else {
-                const opts = ['10cm', '20cm'];
-                opts.forEach(opt => {
-                    let el = document.createElement('option'); el.value = opt; el.textContent = opt;
-                    subCategory.appendChild(el);
-                });
-            }
-            updateDollImage();
+            const opts = selectedMain === '12分' ? ['OB11', '黏土娃', '新 P9'] : ['10cm', '20cm'];
+            opts.forEach(opt => {
+                let el = document.createElement('option'); el.value = opt; el.textContent = opt;
+                subCategory.appendChild(el);
+            });
+            onDollOrBagChange();
         }
 
-        // 2. 切換款式與讀取去背圖片
-        function updateDollImage() {
-            const currentType = subCategory.value;
+        function applySkinPreset() {
+            dollSkin.style.backgroundColor = skinPreset.value === '普肌' ? '#e3d2b9' : '#e5dbcc';
+        }
+
+        // 核心調度：當換素體、換包包款式、或改工藝選項時，重新計算座標與圖層
+        function onDollOrBagChange() {
+            // A. 更新素體底圖
             const imageMapping = {
                 'OB11': 'dolls/body_ob11.png',
                 '黏土娃': 'dolls/body_Nendoroid_Doll.png',
@@ -508,158 +380,179 @@
                 '10cm': 'dolls/body_10cm.png',
                 '20cm': 'dolls/body_20cm.png'
             };
+            dollMask.src = imageMapping[subCategory.value];
 
-            const fileName = imageMapping[currentType];
-            if (fileName) {
-                dollMask.src = fileName;
-            }
+            // B. 重新渲染右側控制面板
+            renderControlPanel();
+
+            // C. 智慧定位刷新
+            refreshPositions();
+
+            // D. 刷新圖層圖片與顏色
+            refreshLayers();
         }
 
-        // 3. 膚色控制機制：點擊快速選單切換成你設定的新色碼
-        function applySkinPreset() {
-            const preset = skinPreset.value;
-            if (preset === '普肌') {
-                customSkinContainer.style.display = 'none';
-                syncSkinColor('#e3d2b9'); // 寫入你設定的普肌色碼
-            } else if (preset === '白肌') {
-                customSkinContainer.style.display = 'none';
-                syncSkinColor('#e5dbcc'); // 寫入你設定的白肌色碼
-            } else if (preset === '自訂') {
-                customSkinContainer.style.display = 'block';
-                syncSkinColor(skinColorPicker.value);
-            }
-        }
-
-        function syncSkinColor(hexColor) {
-            dollSkin.style.backgroundColor = hexColor;
-            skinColorPicker.value = hexColor;
-        }
-
-        // 4. 包包款式切換
-        function updateBagStyle() {
-            const style = bagStyle.value;
-            if (style === '貓貓包') {
-                bag.className = "bag-unit cat-shape";
-                bag.style.backgroundColor = currentMainColor;
-                hardwareL.style.display = "block";
-                hardwareR.style.display = "block";
-                strap.style.display = "block";
-                renderCatOptions();
-            } else {
-                bag.className = "bag-unit";
-                bagPatch.className = "bag-patch";
-                bag.style.backgroundColor = "#ffd700";
-                hardwareR.style.display = "none";
-                bagText.textContent = style;
-                dynamicOptions.innerHTML = `
-                    <div class="control-group">
-                        <label>背帶顏色</label>
-                        <select id="strap-color" onchange="strap.style.backgroundColor = this.value">
-                            <option value="#d2b48c">原皮色</option>
-                            <option value="#5c4033">深咖啡</option>
-                        </select>
-                    </div>
-                `;
-            }
-        }
-
-        function renderCatOptions() {
-            dynamicOptions.innerHTML = `
+        function renderControlPanel() {
+            const panel = document.getElementById('dynamic-options');
+            panel.innerHTML = `
                 <div class="control-group">
-                    <label for="strap-color">背帶顏色</label>
-                    <select id="strap-color" onchange="strap.style.backgroundColor = this.value">
-                        <option value="#d2b48c">原皮色</option>
-                        <option value="#5c4033">深咖啡</option>
+                    <label>花色款式</label>
+                    <select id="cat-pattern-select" onchange="currentCatPattern=this.value; onDollOrBagChange();">
+                        <option value="pure" ${currentCatPattern==='pure'?'selected':''}>純色款</option>
+                        <option value="tuxedo" ${currentCatPattern==='tuxedo'?'selected':''}>賓士款</option>
+                        <option value="calico" ${currentCatPattern==='calico'?'selected':''}>固定色-三花款</option>
+                    </select>
+                </div>
+                <div id="color-pickers-zone"></div>
+                <div class="control-group">
+                    <label>五金顏色</label>
+                    <select onchange="currentHardware=this.value; refreshLayers();">
+                        <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>✨ 24K奢華金</option>
+                        <option value="hw-silver" ${currentHardware==='hw-silver'?'selected':''}>💿 質感亮銀</option>
+                        <option value="hw-rose" ${currentHardware==='hw-rose'?'selected':''}>🌹 浪漫玫瑰金</option>
+                        <option value="hw-bronze" ${currentHardware==='hw-bronze'?'selected':''}>🍂 復古青古銅</option>
+                        <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>🕶️ 曜石槍黑</option>
                     </select>
                 </div>
                 <div class="control-group">
-                    <label for="hardware-color">五金顏色</label>
-                    <select id="hardware-color" onchange="updateHardwareColor(this.value)">
-                        <option value="#ffd700">金</option>
-                        <option value="#c0c0c0">銀</option>
-                        <option value="#b87333">銅</option>
-                        <option value="#212529">黑</option>
+                    <label>表情工藝</label>
+                    <select onchange="currentExpression=this.value; refreshLayers();">
+                        <option value="print" ${currentExpression==='print'?'selected':''}>🖤 一般精細印刷 (純黑)</option>
+                        <option value="emboss" ${currentExpression==='emboss'?'selected':''}>🔨 高級皮革純壓印 (凹陷鋼印效果)</option>
                     </select>
                 </div>
-                <div class="control-group">
-                    <label for="cat-type">貓咪款式</label>
-                    <select id="cat-type" onchange="handleCatTypeChange(this.value)">
-                        <option value="純色">純色</option>
-                        <option value="三花">三花</option>
-                        <option value="賓士">賓士</option>
-                        <option value="手繪">手繪</option>
-                        <option value="特殊">特殊</option>
-                    </select>
-                </div>
-                <div id="cat-color-pickers"></div>
             `;
-            handleCatTypeChange('純色');
-        }
 
-        function updateHardwareColor(color) { 
-            hardwareL.style.backgroundColor = color; 
-            hardwareR.style.backgroundColor = color; 
-        }
-
-        function handleCatTypeChange(type) {
-            const container = document.getElementById('cat-color-pickers');
-            bagText.textContent = `貓貓包 (${type})`;
-            
-            if (type === '三花' || type === '賓士') {
-                bagPatch.className = "bag-patch active-patch";
-                container.innerHTML = `
-                    <div class="control-group" style="margin-top:10px;">
-                        <label>1. 選擇主體包包底色：</label>
-                        <div class="color-palette" id="main-palette"></div>
-                    </div>
-                    <div class="control-group" style="margin-top:10px;">
-                        <label>2. 選擇拼色皮塊顏色：</label>
-                        <div class="color-palette" id="patch-palette"></div>
-                    </div>
+            const zone = document.getElementById('color-pickers-zone');
+            if (currentCatPattern === 'pure') {
+                zone.innerHTML = `<div class="control-group"><label>包包主體顏色</label><div class="color-palette" id="main-pal"></div></div>`;
+                buildPalette('main-pal', 'main');
+            } else if (currentCatPattern === 'tuxedo') {
+                zone.innerHTML = `
+                    <div class="control-group"><label>1. 包包底色</label><div class="color-palette" id="main-pal"></div></div>
+                    <div class="control-group" style="margin-top:5px;"><label>2. 賓士區塊顏色</label><div class="color-palette" id="tux-pal"></div></div>
                 `;
-                buildPalette('main-palette', true);
-                buildPalette('patch-palette', false);
+                buildPalette('main-pal', 'main');
+                buildPalette('tux-pal', 'tuxedo');
             } else {
-                bagPatch.className = "bag-patch";
-                container.innerHTML = `
-                    <div class="control-group" style="margin-top:10px;">
-                        <label>選擇包包顏色：</label>
-                        <div class="color-palette" id="main-palette"></div>
-                    </div>
-                `;
-                buildPalette('main-palette', true);
+                zone.innerHTML = `<p style="font-size:0.85rem; color:#888; margin:5px 0;">💡 三花款為固定設計配色，已為您鎖定色彩面板。</p>`;
             }
+
+            // 背帶改色追加
+            const strapGroup = document.createElement('div');
+            strapGroup.className = 'control-group';
+            strapGroup.innerHTML = `<label>皮背帶顏色</label><div class="color-palette" id="strap-pal"></div>`;
+            panel.appendChild(strapGroup);
+            buildPalette('strap-pal', 'strap');
         }
 
-        function buildPalette(targetId, isMain) {
+        function buildPalette(targetId, type) {
             const target = document.getElementById(targetId);
             paletteColors.forEach(color => {
                 const swatch = document.createElement('div');
                 swatch.className = 'color-swatch';
                 swatch.style.backgroundColor = color.hex;
-                swatch.title = color.name;
                 
-                if(isMain && color.hex === currentMainColor) swatch.classList.add('active');
-                if(!isMain && color.hex === currentPatchColor) swatch.classList.add('active');
+                if(type === 'main' && color.hex === currentMainColor) swatch.classList.add('active');
+                if(type === 'tuxedo' && color.hex === currentTuxedoColor) swatch.classList.add('active');
+                if(type === 'strap' && color.hex === currentStrapColor) swatch.classList.add('active');
 
                 swatch.onclick = function() {
                     target.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
                     swatch.classList.add('active');
-                    if(isMain) {
-                        currentMainColor = color.hex;
-                        bag.style.backgroundColor = currentMainColor;
-                    } else {
-                        currentPatchColor = color.hex;
-                        bagPatch.style.backgroundColor = currentPatchColor;
-                    }
+                    if(type === 'main') { currentMainColor = color.hex; }
+                    if(type === 'tuxedo') { currentTuxedoColor = color.hex; }
+                    if(type === 'strap') { currentStrapColor = color.hex; }
+                    refreshLayers();
                 };
                 target.appendChild(swatch);
             });
         }
 
+        // 動態計算背帶的長度與旋轉角度，完美連線到肩膀
+        function refreshPositions() {
+            const config = positionConfig[subCategory.value] || positionConfig['OB11'];
+            
+            // 定位包包主容器 (扣除包包一半寬高，以中心點對齊)
+            const bX = config.bagX - 52;
+            const bY = config.bagY - 45;
+            bagContainer.style.left = bX + 'px';
+            bagContainer.style.top = bY + 'px';
+
+            // 背帶動態三角函數計算
+            const sX = config.strapStartX;
+            const sY = config.strapStartY;
+            const targetX = config.bagX - 35; // 連接到包包左側掛耳附近
+            const targetY = config.bagY - 15;
+
+            const deltaX = targetX - sX;
+            const deltaY = targetY - sY;
+            const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+            dynamicStrap.style.left = sX + 'px';
+            dynamicStrap.style.top = sY + 'px';
+            dynamicStrap.style.width = length + 'px';
+            dynamicStrap.style.transform = `rotate(${angle}deg)`;
+        }
+
+        // 圖層顯隱與濾鏡上色核心
+        function refreshLayers() {
+            const imgPath = 'bags/cat/';
+            
+            const lCalico = document.getElementById('layer-calico');
+            const lMainBg = document.getElementById('layer-main-bg');
+            const lMain = document.getElementById('layer-main');
+            const lTuxBg = document.getElementById('layer-tux-bg');
+            const lTux = document.getElementById('layer-tux');
+            const lFace = document.getElementById('layer-face');
+            const lHardware = document.getElementById('layer-hardware');
+
+            // 套用背帶色
+            dynamicStrap.style.backgroundColor = currentStrapColor;
+
+            if (currentCatPattern === 'calico') {
+                // 三花模式：開啟固定配色圖，隱藏主體和賓士層
+                lCalico.style.display = 'block';
+                lCalico.style.backgroundImage = `url('${imgPath}cat_calico.png')`;
+                lMainBg.style.display = 'none';
+                lMain.style.display = 'none';
+                lTuxBg.style.display = 'none';
+                lTux.style.display = 'none';
+            } else {
+                // 純色與賓士模式
+                lCalico.style.display = 'none';
+                lMain.style.display = 'block';
+                lMain.style.backgroundImage = `url('${imgPath}cat_main.png')`;
+                lMainBg.style.display = 'block';
+                lMainBg.style.backgroundColor = currentMainColor;
+
+                if (currentCatPattern === 'tuxedo') {
+                    lTux.style.display = 'block';
+                    lTux.style.backgroundImage = `url('${imgPath}cat_patch_tuxedo.png')`;
+                    lTuxBg.style.display = 'block';
+                    lTuxBg.style.backgroundColor = currentTuxedoColor;
+                } else {
+                    lTux.style.display = 'none';
+                    lTuxBg.style.display = 'none';
+                }
+            }
+
+            // 渲染表情（一般印刷 vs 皮革壓印）
+            lFace.style.backgroundImage = `url('${imgPath}cat_face_black.png')`;
+            if (currentExpression === 'emboss') {
+                lFace.className = "bag-layer face-emboss-effect";
+            } else {
+                lFace.className = "bag-layer"; // 恢復純黑
+            }
+
+            // 渲染五金顏色
+            lHardware.style.backgroundImage = `url('${imgPath}cat_hardware.png')`;
+            lHardware.className = `bag-layer ${currentHardware}`;
+        }
+
         window.onload = function() {
             updateSubCategory();
-            updateBagStyle();
             applySkinPreset();
         }
     </script>
