@@ -99,6 +99,18 @@
         }
         .color-swatch:hover { transform: scale(1.1); }
         .color-swatch.active { border-color: #333; box-shadow: 0 0 4px rgba(0,0,0,0.3); }
+        .skin-swatch-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .skin-swatch {
+            height: 38px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #444;
+            background: #fff;
+        }
+        .skin-swatch:hover { border-color: #ff8fa3; }
+        .skin-color-input { width: 100%; height: 42px; padding: 3px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
 
         /* 右側畫布區 */
         .display-area {
@@ -127,6 +139,13 @@
         }
 
         .doll-stage { position: relative; width: 100%; height: 100%; }
+        .doll-skin-fill {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-color: #e3d2b9;
+            pointer-events: none;
+        }
 
         /* 1:1 圖層完美標準定位：寬高完全死鎖 100%，起點全部 (0,0)，直接疊加 */
         .layer-img {
@@ -202,11 +221,15 @@
                 </select>
             </div>
             <div class="control-group">
-                <label for="skin-preset">快速膚色</label>
-                <select id="skin-preset" onchange="applySkinPreset()">
-                    <option value="普肌" selected>普肌</option>
-                    <option value="白肌">白肌</option>
-                </select>
+                <label>快速膚色</label>
+                <div class="skin-swatch-row">
+                    <button class="skin-swatch" type="button" style="background-color:#e5dbcc;" onclick="applySkinColor('#e5dbcc')">白肌</button>
+                    <button class="skin-swatch" type="button" style="background-color:#e3d2b9;" onclick="applySkinColor('#e3d2b9')">普肌</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="custom-skin-color">自訂膚色</label>
+                <input id="custom-skin-color" class="skin-color-input" type="color" value="#e3d2b9" oninput="applySkinColor(this.value)">
             </div>
         </div>
 
@@ -232,8 +255,9 @@
     <div class="display-area">
         <div class="canvas">
             <div class="doll-stage">
+                <div id="doll-skin-fill" class="doll-skin-fill"></div>
                 <img id="doll-mask" class="layer-img" style="z-index: 1;" src="dolls/body_ob11.png" alt="娃娃素體">
-                
+
                 <img id="layer-main-color" class="bag-layer" style="z-index:10;" src="" alt="">
 
                 <img id="layer-tuxedo-color" class="bag-layer" style="z-index:11; display:none;" src="" alt="">
@@ -279,7 +303,8 @@
         const sidebar = document.getElementById('sidebar');
         const mainCategory = document.getElementById('main-category');
         const subCategory = document.getElementById('sub-category');
-        const skinPreset = document.getElementById('skin-preset');
+        const skinFill = document.getElementById('doll-skin-fill');
+        const customSkinColor = document.getElementById('custom-skin-color');
         const dollMask = document.getElementById('doll-mask');
 
         function toggleSidebar() { sidebar.classList.toggle('open'); }
@@ -295,13 +320,10 @@
             onDollOrBagChange();
         }
 
-        function applySkinPreset() {
-            // 素體膚色快速切換
-            if(skinPreset.value === '白肌') {
-                dollMask.style.filter = "brightness(1.1) sepia(0.1)";
-            } else {
-                dollMask.style.filter = "none";
-            }
+        function applySkinColor(color) {
+            skinFill.style.backgroundColor = color;
+            customSkinColor.value = color;
+            dollMask.style.filter = "none";
         }
 
         function resetBagCalibrationForDoll() {
@@ -519,7 +541,7 @@
 
         window.onload = function() {
             updateSubCategory();
-            applySkinPreset();
+            applySkinColor('#e3d2b9');
         }
     </script>
 </body>
