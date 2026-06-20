@@ -164,15 +164,19 @@
             transform-origin: center center;
         }
 
-        /* ==================== 🛠️ 全瀏覽器相容 高精度特效濾鏡 ==================== */
-        
-        /* 1. 五金變色濾鏡（基於原本黑線稿 cat_hardware.png 的高級色調轉換） */
-        .hw-gold   { filter: invert(34%) sepia(87%) saturate(464%) hue-rotate(5deg) brightness(110%) contrast(93%); } /* 質感金 */
-        .hw-silver { filter: invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(105%) contrast(90%); }    /* 亮銀 */
-        .hw-bronze { filter: invert(30%) sepia(40%) saturate(300%) hue-rotate(15deg) brightness(75%) contrast(85%); } /* 古銅 */
-        .hw-black  { filter: invert(15%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(60%) contrast(95%); }     /* 槍黑 */
+        .mask-layer {
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100% 100%;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            -webkit-mask-size: 100% 100%;
+            mask-repeat: no-repeat;
+            mask-position: center;
+            mask-size: 100% 100%;
+        }
 
-        /* 2. 表情工藝加工濾鏡（基於 cat_face_black.png 轉換） */
+        /* 表情工藝加工濾鏡（基於 cat_face_black.png 轉換） */
         .face-emboss       { filter: opacity(0.4) contrast(0.7) brightness(1.2); mix-blend-mode: multiply; }          /* 壓印：半透明自然凹陷感 */
         .face-foil-gold    { filter: invert(34%) sepia(87%) saturate(464%) hue-rotate(5deg) brightness(110%) contrast(93%); } /* 燙金-金 */
         .face-foil-silver  { filter: invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(105%) contrast(90%); }    /* 燙金-銀 */
@@ -250,16 +254,16 @@
                 <div id="doll-skin-fill" class="doll-skin-fill"></div>
                 <img id="doll-mask" class="layer-img" style="z-index: 1;" src="dolls/body_ob11.png" alt="娃娃素體">
 
-                <img id="layer-main-color" class="bag-layer" style="z-index:10;" src="" alt="">
+                <div id="layer-main-color" class="bag-layer mask-layer" style="z-index:10;"></div>
 
-                <img id="layer-tuxedo-color" class="bag-layer" style="z-index:11; display:none;" src="" alt="">
+                <div id="layer-tuxedo-color" class="bag-layer mask-layer" style="z-index:11; display:none;"></div>
 
                 <img id="layer-calico" class="bag-layer" style="display:none; z-index:12;" src="" alt="">
+                <div id="layer-hardware" class="bag-layer mask-layer" style="z-index:18;"></div>
 
                 <img id="layer-main-line" class="bag-layer lineart-overlay" style="z-index:20;" src="" alt="">
                 <img id="layer-tuxedo-line" class="bag-layer lineart-overlay" style="z-index:21; display:none;" src="" alt="">
                 <img id="layer-face" class="bag-layer" style="z-index:22;" src="" alt="">
-                <img id="layer-hardware" class="bag-layer" style="z-index:23;" src="" alt="">
             </div>
         </div>
     </div>
@@ -272,13 +276,22 @@
             { name: '經典黑', hex: '#212529' },
             { name: '象牙白', hex: '#f8f9fa' },
             { name: '復古紅', hex: '#ae2012' },
-            { name: '午夜藍', hex: '#1a5f7a' }
+            { name: '午夜藍', hex: '#1a5f7a' },
+            { name: '森林綠', hex: '#52796f' },
+            { name: '奶油黃', hex: '#e9c46a' },
+            { name: '薰衣草', hex: '#b8a1c9' }
         ];
+        const hardwareColors = {
+            'hw-gold': '#d4af37',
+            'hw-silver': '#c0c0c0',
+            'hw-bronze': '#8c6239',
+            'hw-black': '#2b2b2b'
+        };
 
         let currentMainColor = '#d4a373';
         let currentTuxedoColor = '#f8f9fa';
         let currentHardware = 'hw-gold';
-        let currentExpression = 'face-emboss';
+        let currentExpression = 'face-none';
         let currentCatPattern = 'pure';
         const STANDARD_CANVAS_SIZE_PX = 550;
         const LARGE_CANVAS_SIZE_PX = Math.round(STANDARD_CANVAS_SIZE_PX * (3262 / 2254));
@@ -446,6 +459,7 @@
                 const swatch = document.createElement('div');
                 swatch.className = 'color-swatch';
                 swatch.style.backgroundColor = color.hex;
+                swatch.title = `${color.name} ${color.hex}`;
                 
                 if(type === 'main' && color.hex === currentMainColor) swatch.classList.add('active');
                 if(type === 'tuxedo' && color.hex === currentTuxedoColor) swatch.classList.add('active');
@@ -461,9 +475,11 @@
             });
         }
 
-        // 精準將色票 hex 轉換為完美的純色填充濾鏡
-        function hexToFilter(hex) {
-            return `drop-shadow(0px 0px 0px ${hex}) drop-shadow(0px 0px 0px ${hex}) drop-shadow(0px 0px 0px ${hex}) brightness(1.0) contrast(1.0)`;
+        function setMaskLayer(layer, maskUrl, color) {
+            const cssMaskUrl = `url("${maskUrl}")`;
+            layer.style.backgroundColor = color;
+            layer.style.webkitMaskImage = cssMaskUrl;
+            layer.style.maskImage = cssMaskUrl;
         }
 
         function applyBagPlacement() {
@@ -509,40 +525,24 @@
             const lFace = document.getElementById('layer-face');
             const lHardware = document.getElementById('layer-hardware');
 
-            if (currentCatPattern === 'calico') {
+            // 主體底色遮色片與共用線稿
+            lMainColor.style.display = 'block';
+            setMaskLayer(lMainColor, `${imgPath}cat_base_mask.png`, currentMainColor);
+            lMainLine.style.display = 'block';
+            lMainLine.src = `${imgPath}cat_line.png`;
+
+            lTuxColor.style.display = 'none';
+            lTuxLine.style.display = 'none';
+            lCalico.style.display = 'none';
+
+            if (currentCatPattern === 'tuxedo') {
+                lTuxColor.style.display = 'block';
+                setMaskLayer(lTuxColor, `${imgPath}cat_tuxedo_mask.png`, currentTuxedoColor);
+                lTuxLine.style.display = 'block';
+                lTuxLine.src = `${imgPath}cat_tuxedo_line.png`;
+            } else if (currentCatPattern === 'calico') {
                 lCalico.style.display = 'block';
                 lCalico.src = `${imgPath}cat_calico.png`;
-
-                lMainColor.style.display = 'block';
-                lMainColor.src = `${imgPath}cat_main.png`;
-                lMainColor.style.filter = hexToFilter(currentMainColor);
-                lMainLine.style.display = 'block';
-                lMainLine.src = `${imgPath}cat_main.png`;
-                lTuxColor.style.display = 'none';
-                lTuxLine.style.display = 'none';
-            } else {
-                lCalico.style.display = 'none';
-                
-                // 1. 渲染主體：底層用 filter 刷上飽和的實色，頂層蓋上原本的純黑去背線稿
-                lMainColor.style.display = 'block';
-                lMainColor.src = `${imgPath}cat_main.png`;
-                lMainColor.style.filter = hexToFilter(currentMainColor);
-
-                lMainLine.style.display = 'block';
-                lMainLine.src = `${imgPath}cat_main.png`;
-
-                // 2. 渲染賓士區塊
-                if (currentCatPattern === 'tuxedo') {
-                    lTuxColor.style.display = 'block';
-                    lTuxColor.src = `${imgPath}cat_patch_tuxedo.png`;
-                    lTuxColor.style.filter = hexToFilter(currentTuxedoColor);
-
-                    lTuxLine.style.display = 'block';
-                    lTuxLine.src = `${imgPath}cat_patch_tuxedo.png`;
-                } else {
-                    lTuxColor.style.display = 'none';
-                    lTuxLine.style.display = 'none';
-                }
             }
 
             // 3. 表情加工變色（利用覆蓋全網頁支援的精準反轉色矩陣）
@@ -554,9 +554,9 @@
                 lFace.className = `bag-layer ${currentExpression}`;
             }
 
-            // 4. 五金加工變色（利用覆蓋全網頁支援的精準反轉色矩陣）
-            lHardware.src = `${imgPath}cat_hardware.png`;
-            lHardware.className = `bag-layer ${currentHardware}`;
+            // 4. 五金遮色片換色
+            lHardware.className = 'bag-layer mask-layer';
+            setMaskLayer(lHardware, `${imgPath}cat_hardware_mask.png`, hardwareColors[currentHardware]);
 
             applyBagPlacement();
         }
