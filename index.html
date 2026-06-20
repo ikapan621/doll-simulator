@@ -87,6 +87,10 @@
 
         label { font-weight: bold; color: #555; font-size: 0.9rem; }
         select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.95rem; background-color: #fff; }
+        input[type="range"] { width: 100%; accent-color: #ff8fa3; }
+        .range-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+        .range-value { font-size: 0.82rem; color: #777; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .calibration-note { margin: 0; color: #777; font-size: 0.82rem; line-height: 1.45; }
 
         /* 色票樣式 */
         .color-palette { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
@@ -143,6 +147,16 @@
         .lineart-overlay {
             mix-blend-mode: multiply;
             z-index: 25;
+        }
+
+        .bag-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: auto;
+            height: auto;
+            pointer-events: none;
+            transform-origin: center center;
         }
 
         /* ==================== 🛠️ 全瀏覽器相容 高精度特效濾鏡 ==================== */
@@ -225,16 +239,16 @@
             <div class="doll-stage">
                 <img id="doll-mask" class="layer-img" style="z-index: 1;" src="dolls/body_ob11.png" alt="娃娃素體">
                 
-                <img id="layer-main-color" class="layer-img" style="z-index:10;" src="" alt="">
+                <img id="layer-main-color" class="bag-layer" style="z-index:10;" src="" alt="">
 
-                <img id="layer-tuxedo-color" class="layer-img" style="z-index:11; display:none;" src="" alt="">
+                <img id="layer-tuxedo-color" class="bag-layer" style="z-index:11; display:none;" src="" alt="">
 
-                <img id="layer-calico" class="layer-img" style="display:none; z-index:12;" src="" alt="">
-                
-                <img id="layer-main-line" class="layer-img lineart-overlay" style="z-index:20;" src="" alt="">
-                <img id="layer-tuxedo-line" class="layer-img lineart-overlay" style="z-index:21; display:none;" src="" alt="">
-                <img id="layer-face" class="layer-img" style="z-index:22;" src="" alt="">
-                <img id="layer-hardware" class="layer-img" style="z-index:23;" src="" alt="">
+                <img id="layer-calico" class="bag-layer" style="display:none; z-index:12;" src="" alt="">
+
+                <img id="layer-main-line" class="bag-layer lineart-overlay" style="z-index:20;" src="" alt="">
+                <img id="layer-tuxedo-line" class="bag-layer lineart-overlay" style="z-index:21; display:none;" src="" alt="">
+                <img id="layer-face" class="bag-layer" style="z-index:22;" src="" alt="">
+                <img id="layer-hardware" class="bag-layer" style="z-index:23;" src="" alt="">
             </div>
         </div>
     </div>
@@ -253,8 +267,19 @@
         let currentMainColor = '#d4a373';
         let currentTuxedoColor = '#f8f9fa';
         let currentHardware = 'hw-gold';
-        let currentExpression = 'face-emboss'; 
-        let currentCatPattern = 'pure';   
+        let currentExpression = 'face-emboss';
+        let currentCatPattern = 'pure';
+        const CANVAS_SIZE_PX = 550;
+        const BAG_IMAGE_RATIO = 397 / 316;
+        const dollScalePresets = {
+            'OB11': { heightCm: 11, bagXcm: 4.0, bagYcm: 4.7, bagSizeCm: 3.0, bagRotationDeg: -8 },
+            '黏土娃': { heightCm: 11, bagXcm: 4.0, bagYcm: 4.8, bagSizeCm: 3.0, bagRotationDeg: -8 },
+            '新 P9': { heightCm: 11, bagXcm: 4.0, bagYcm: 4.7, bagSizeCm: 3.0, bagRotationDeg: -8 },
+            '10cm': { heightCm: 10, bagXcm: 3.5, bagYcm: 4.2, bagSizeCm: 3.0, bagRotationDeg: -8 },
+            '20cm': { heightCm: 20, bagXcm: 7.1, bagYcm: 8.4, bagSizeCm: 3.0, bagRotationDeg: -8 }
+        };
+        let bagCalibration = { xCm: 4.0, yCm: 4.7, sizeCm: 3.0, rotationDeg: -8 };
+        let activeDollValue = 'OB11';
 
         const sidebar = document.getElementById('sidebar');
         const mainCategory = document.getElementById('main-category');
@@ -284,6 +309,16 @@
             }
         }
 
+        function resetBagCalibrationForDoll() {
+            const preset = dollScalePresets[subCategory.value] || dollScalePresets['OB11'];
+            bagCalibration = {
+                xCm: preset.bagXcm,
+                yCm: preset.bagYcm,
+                sizeCm: preset.bagSizeCm,
+                rotationDeg: preset.bagRotationDeg
+            };
+        }
+
         function onDollOrBagChange() {
             const imageMapping = {
                 'OB11': 'dolls/body_ob11.png',
@@ -293,9 +328,36 @@
                 '20cm': 'dolls/body_20cm.png'
             };
             dollMask.src = imageMapping[subCategory.value];
+            if (activeDollValue !== subCategory.value) {
+                activeDollValue = subCategory.value;
+                resetBagCalibrationForDoll();
+            }
 
             renderControlPanel();
             refreshLayers();
+        }
+
+        function updateBagCalibration(key, value) {
+            bagCalibration[key] = Number(value);
+            const valueEl = document.getElementById(`${key}-value`);
+            if (valueEl) {
+                valueEl.textContent = key === 'rotationDeg' ? `${bagCalibration[key]}°` : `${bagCalibration[key].toFixed(1)} cm`;
+            }
+            applyBagPlacement();
+        }
+
+        function renderRangeControl(key, label, min, max, step, suffix) {
+            const value = bagCalibration[key];
+            const display = key === 'rotationDeg' ? `${value}°` : `${value.toFixed(1)} ${suffix}`;
+            return `
+                <div class="control-group">
+                    <div class="range-head">
+                        <label for="${key}-range">${label}</label>
+                        <span class="range-value" id="${key}-value">${display}</span>
+                    </div>
+                    <input id="${key}-range" type="range" min="${min}" max="${max}" step="${step}" value="${value}" oninput="updateBagCalibration('${key}', this.value)">
+                </div>
+            `;
         }
 
         function renderControlPanel() {
@@ -310,6 +372,12 @@
                     </select>
                 </div>
                 <div id="color-pickers-zone"></div>
+                <hr style="border: 0; border-top: 1px solid #e6e6e6; margin: 2px 0;">
+                <p class="calibration-note">尺寸校準：包包以公分換算顯示，X/Y 是包包中心點，從畫布左上角起算。先用滑桿把 3cm 包包放到素體上，再固定為該素體預設。</p>
+                ${renderRangeControl('xCm', '包包中心 X', 0, 20, 0.1, 'cm')}
+                ${renderRangeControl('yCm', '包包中心 Y', 0, 20, 0.1, 'cm')}
+                ${renderRangeControl('sizeCm', '包包寬度', 1, 6, 0.1, 'cm')}
+                ${renderRangeControl('rotationDeg', '包包角度', -45, 45, 1, '°')}
                 <div class="control-group">
                     <label>五金顏色</label>
                     <select onchange="currentHardware=this.value; refreshLayers();">
@@ -372,6 +440,33 @@
             return `drop-shadow(0px 0px 0px ${hex}) drop-shadow(0px 0px 0px ${hex}) drop-shadow(0px 0px 0px ${hex}) brightness(1.0) contrast(1.0)`;
         }
 
+        function applyBagPlacement() {
+            const preset = dollScalePresets[subCategory.value] || dollScalePresets['OB11'];
+            const pxPerCm = CANVAS_SIZE_PX / preset.heightCm;
+            const widthPx = bagCalibration.sizeCm * pxPerCm;
+            const heightPx = widthPx / BAG_IMAGE_RATIO;
+            const leftPx = (bagCalibration.xCm * pxPerCm) - (widthPx / 2);
+            const topPx = (bagCalibration.yCm * pxPerCm) - (heightPx / 2);
+            const layerIds = [
+                'layer-main-color',
+                'layer-tuxedo-color',
+                'layer-calico',
+                'layer-main-line',
+                'layer-tuxedo-line',
+                'layer-face',
+                'layer-hardware'
+            ];
+
+            layerIds.forEach(id => {
+                const layer = document.getElementById(id);
+                layer.style.width = `${widthPx}px`;
+                layer.style.height = `${heightPx}px`;
+                layer.style.left = `${leftPx}px`;
+                layer.style.top = `${topPx}px`;
+                layer.style.transform = `rotate(${bagCalibration.rotationDeg}deg)`;
+            });
+        }
+
         function refreshLayers() {
             const imgPath = 'bags/cat/';
             
@@ -421,11 +516,13 @@
 
             // 3. 表情加工變色（利用覆蓋全網頁支援的精準反轉色矩陣）
             lFace.src = `${imgPath}cat_face_black.png`;
-            lFace.className = `layer-img ${currentExpression}`;
+            lFace.className = `bag-layer ${currentExpression}`;
 
             // 4. 五金加工變色（利用覆蓋全網頁支援的精準反轉色矩陣）
             lHardware.src = `${imgPath}cat_hardware.png`;
-            lHardware.className = `layer-img ${currentHardware}`;
+            lHardware.className = `bag-layer ${currentHardware}`;
+
+            applyBagPlacement();
         }
 
         window.onload = function() {
