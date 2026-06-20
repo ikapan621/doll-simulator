@@ -303,7 +303,7 @@
             '黏土娃': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: (STANDARD_CANVAS_SIZE_PX * 0.6306) / 11.1, bodyLeftRatio: 0.3940, bodyTopRatio: 0.2567, bagXcm: 3.41, bagYcm: 6.87, bagSizeCm: 3.0, bagRotationDeg: -4 },
             '新 P9': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: STANDARD_PX_PER_CM, bodyLeftRatio: 0.3540, bodyTopRatio: 0.2034, bagXcm: 3.92, bagYcm: 7.67, bagSizeCm: 3.0, bagRotationDeg: -4 },
             '10cm': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: (STANDARD_CANVAS_SIZE_PX * 0.6708) / 10, bodyLeftRatio: 0.2848, bodyTopRatio: 0.2142, bagXcm: 4.95, bagYcm: 7.89, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            '20cm': { canvasSizePx: LARGE_CANVAS_SIZE_PX, pxPerCm: (LARGE_CANVAS_SIZE_PX * 0.7823) / 20, bodyLeftRatio: 0.2765, bodyTopRatio: 0.1422, bagXcm: 8.96, bagYcm: 13.26, bagSizeCm: 3.0, bagRotationDeg: -4 }
+            '20cm': { canvasSizePx: LARGE_CANVAS_SIZE_PX, pxPerCm: (LARGE_CANVAS_SIZE_PX * 0.7823) / 20, bodyLeftRatio: 0.2765, bodyTopRatio: 0.1422, bagXcm: 8.96, bagYcm: 13.86, bagSizeCm: 3.0, bagRotationDeg: -4 }
         };
         let bagCalibration = { xCm: 3.35, yCm: 6.70, sizeCm: 3.0, rotationDeg: -4 };
         let activeDollValue = 'OB11';
@@ -416,21 +416,21 @@
                 <div class="control-group">
                     <label>五金顏色</label>
                     <select onchange="currentHardware=this.value; refreshLayers();">
-                        <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>純亮金</option>
-                        <option value="hw-silver" ${currentHardware==='hw-silver'?'selected':''}>亮銀色</option>
-                        <option value="hw-bronze" ${currentHardware==='hw-bronze'?'selected':''}>復古古銅</option>
-                        <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>質感槍黑</option>
+                        <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>金</option>
+                        <option value="hw-silver" ${currentHardware==='hw-silver'?'selected':''}>銀</option>
+                        <option value="hw-bronze" ${currentHardware==='hw-bronze'?'selected':''}>古銅</option>
+                        <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>槍黑</option>
                     </select>
                 </div>
                 <div class="control-group">
                     <label>燙金/壓印加工</label>
                     <select onchange="currentExpression=this.value; refreshLayers();">
                         <option value="face-none" ${currentExpression==='face-none'?'selected':''}>無加工</option>
-                        <option value="face-emboss" ${currentExpression==='face-emboss'?'selected':''}>凹凸壓印</option>
-                        <option value="face-foil-gold" ${currentExpression==='face-foil-gold'?'selected':''}>經典燙金</option>
-                        <option value="face-foil-silver" ${currentExpression==='face-foil-silver'?'selected':''}>極光燙銀</option>
-                        <option value="face-foil-rose" ${currentExpression==='face-foil-rose'?'selected':''}>玫瑰金</option>
-                        <option value="face-foil-black" ${currentExpression==='face-foil-black'?'selected':''}>個性黑金</option>
+                        <option value="face-emboss" ${currentExpression==='face-emboss'?'selected':''}>壓印</option>
+                        <option value="face-foil-gold" ${currentExpression==='face-foil-gold'?'selected':''}>燙金-金</option>
+                        <option value="face-foil-silver" ${currentExpression==='face-foil-silver'?'selected':''}>燙金-銀</option>
+                        <option value="face-foil-rose" ${currentExpression==='face-foil-rose'?'selected':''}>燙金-玫瑰金</option>
+                        <option value="face-foil-black" ${currentExpression==='face-foil-black'?'selected':''}>燙金-黑</option>
                     </select>
                 </div>
             `;
