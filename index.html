@@ -185,18 +185,6 @@
             transform-origin: center center;
         }
 
-        .mask-layer {
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: 100% 100%;
-            -webkit-mask-repeat: no-repeat;
-            -webkit-mask-position: center;
-            -webkit-mask-size: 100% 100%;
-            mask-repeat: no-repeat;
-            mask-position: center;
-            mask-size: 100% 100%;
-        }
-
         .strap-layer {
             position: absolute;
             z-index: 8;
@@ -315,12 +303,12 @@
                 <div id="custom-body-host" style="display:none;"></div>
                 <div id="layer-strap" class="strap-layer"></div>
 
-                <div id="layer-main-color" class="bag-layer mask-layer" style="z-index:10;"></div>
+                <canvas id="layer-main-color" class="bag-layer" width="397" height="316" style="z-index:10;"></canvas>
 
-                <div id="layer-tuxedo-color" class="bag-layer mask-layer" style="z-index:11; display:none;"></div>
+                <canvas id="layer-tuxedo-color" class="bag-layer" width="397" height="316" style="z-index:11; display:none;"></canvas>
 
                 <img id="layer-calico" class="bag-layer" style="display:none; z-index:12;" src="" alt="">
-                <div id="layer-hardware" class="bag-layer mask-layer" style="z-index:18;"></div>
+                <canvas id="layer-hardware" class="bag-layer" width="397" height="316" style="z-index:18;"></canvas>
 
                 <img id="layer-main-line" class="bag-layer lineart-overlay" style="z-index:20;" src="" alt="">
                 <img id="layer-tuxedo-line" class="bag-layer lineart-overlay" style="z-index:21; display:none;" src="" alt="">
@@ -552,11 +540,40 @@
             });
         }
 
-        function setMaskLayer(layer, maskUrl, color) {
-            const cssMaskUrl = `url("${maskUrl}")`;
-            layer.style.backgroundColor = color;
-            layer.style.webkitMaskImage = cssMaskUrl;
-            layer.style.maskImage = cssMaskUrl;
+        const maskImageCache = new Map();
+
+        function loadMaskImage(maskUrl) {
+            if (!maskImageCache.has(maskUrl)) {
+                maskImageCache.set(maskUrl, new Promise((resolve, reject) => {
+                    const image = new Image();
+                    image.onload = () => resolve(image);
+                    image.onerror = () => reject(new Error(`遮色片載入失敗：${maskUrl}`));
+                    image.src = maskUrl;
+                }));
+            }
+            return maskImageCache.get(maskUrl);
+        }
+
+        async function setMaskLayer(layer, maskUrl, color) {
+            const requestKey = `${maskUrl}|${color}`;
+            layer.dataset.maskRequest = requestKey;
+
+            try {
+                const image = await loadMaskImage(maskUrl);
+                if (layer.dataset.maskRequest !== requestKey) return;
+
+                layer.width = image.naturalWidth || 397;
+                layer.height = image.naturalHeight || 316;
+                const context = layer.getContext('2d');
+                context.clearRect(0, 0, layer.width, layer.height);
+                context.drawImage(image, 0, 0, layer.width, layer.height);
+                context.globalCompositeOperation = 'source-in';
+                context.fillStyle = color;
+                context.fillRect(0, 0, layer.width, layer.height);
+                context.globalCompositeOperation = 'source-over';
+            } catch (error) {
+                console.error(error);
+            }
         }
 
         function applyStrapPlacement(preset, bagCenterX, bagCenterY, bagWidth, bagHeight, shoulderAnchor = null) {
@@ -667,7 +684,7 @@
             }
 
             // 4. 五金遮色片換色
-            lHardware.className = 'bag-layer mask-layer';
+            lHardware.className = 'bag-layer';
             setMaskLayer(lHardware, `${imgPath}cat_hardware_mask.png`, hardwareColors[currentHardware]);
 
             applyBagPlacement();
