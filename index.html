@@ -134,6 +134,35 @@
             padding: 20px;
         }
 
+        .preview-layout {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .reference-gallery {
+            display: grid;
+            gap: 12px;
+            width: 190px;
+        }
+
+        .reference-gallery[hidden] { display: none; }
+
+        .reference-slot {
+            width: 190px;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background: #fafafa;
+        }
+
+        .reference-slot img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
         /* 畫布固定 550x550，內部所有圖層全部 1:1 滿版絕對定位重疊，網頁絕不干涉你的圖檔原位置 */
         .canvas {
             position: relative;
@@ -210,6 +239,12 @@
             .control-panel.open { transform: translateX(0); }
             .close-sidebar-btn { display: block; }
             .display-area { width: 100%; height: calc(100vh - 50px); align-items: flex-start; }
+            .preview-layout { flex-direction: column; }
+            .reference-gallery {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                width: min(550px, calc(100vw - 24px));
+            }
+            .reference-slot { width: auto; }
         }
     </style>
 </head>
@@ -288,6 +323,7 @@
             <label for="bag-style">包包款式</label>
             <select id="bag-style" onchange="onDollOrBagChange()">
                 <option value="cat" selected>貓貓包</option>
+                <option value="toast">吐司包</option>
             </select>
         </div>
 
@@ -296,6 +332,7 @@
     </div>
 
     <div class="display-area">
+        <div class="preview-layout">
         <div class="canvas">
             <div class="doll-stage">
                 <div id="doll-skin-fill" class="doll-skin-fill"></div>
@@ -314,6 +351,12 @@
                 <img id="layer-tuxedo-line" class="bag-layer lineart-overlay" style="z-index:21; display:none;" src="" alt="">
                 <img id="layer-face" class="bag-layer" style="z-index:22;" src="" alt="">
             </div>
+        </div>
+        <aside id="reference-gallery" class="reference-gallery" aria-label="實品參考圖片" hidden>
+            <div class="reference-slot"><img id="reference-image-1" loading="lazy" alt="吐司包實品參考圖一"></div>
+            <div class="reference-slot"><img id="reference-image-2" loading="lazy" alt="吐司包實品參考圖二"></div>
+            <div class="reference-slot"><img id="reference-image-3" loading="lazy" alt="對應素體實品參考圖"></div>
+        </aside>
         </div>
     </div>
 
@@ -346,9 +389,11 @@
         const LARGE_CANVAS_SIZE_PX = Math.round(STANDARD_CANVAS_SIZE_PX * (3262 / 2254));
         const OB11_REFERENCE_HEIGHT_CM = 12.5;
         const STANDARD_PX_PER_CM = (STANDARD_CANVAS_SIZE_PX * 0.6767) / OB11_REFERENCE_HEIGHT_CM;
-        const BAG_IMAGE_RATIO = 397 / 316;
-        const STRAP_WIDTH_CM = 0.22;
-        const STRAP_HARDWARE_ANCHOR = { xRatio: 0.045, yRatio: 0.04 };
+        const bagStyleConfigs = {
+            cat: { imageRatio: 397 / 316, strapAnchor: { xRatio: 0.045, yRatio: 0.04 }, strapColor: null },
+            toast: { imageRatio: 378 / 354, strapAnchor: { xRatio: 0.064, yRatio: 0.22 }, strapColor: '#4b210f' }
+        };
+        let strapWidthCm = 0.22;
         const dollScalePresets = {
             'OB11': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: STANDARD_PX_PER_CM, bodyLeftRatio: 0.3762, bodyTopRatio: 0.2060, strapShoulderXRatio: 0.46, strapShoulderYRatio: 0.43, bagXcm: 3.81, bagYcm: 7.61, bagSizeCm: 3.0, bagRotationDeg: -4 },
             '黏土娃': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: (STANDARD_CANVAS_SIZE_PX * 0.6306) / 11.1, bodyLeftRatio: 0.3940, bodyTopRatio: 0.2567, strapShoulderXRatio: 0.46, strapShoulderYRatio: 0.47, bagXcm: 3.41, bagYcm: 6.87, bagSizeCm: 3.0, bagRotationDeg: -4 },
@@ -363,6 +408,7 @@
         const sidebar = document.getElementById('sidebar');
         const mainCategory = document.getElementById('main-category');
         const subCategory = document.getElementById('sub-category');
+        const bagStyle = document.getElementById('bag-style');
         const skinFill = document.getElementById('doll-skin-fill');
         const skinPreset = document.getElementById('skin-preset');
         const customSkinRow = document.getElementById('custom-skin-row');
@@ -440,6 +486,7 @@
 
             renderControlPanel();
             refreshLayers();
+            updateReferenceGallery();
         }
 
         function updateBagCalibration(key, value) {
@@ -467,6 +514,27 @@
 
         function renderControlPanel() {
             const panel = document.getElementById('dynamic-options');
+            if (bagStyle.value === 'toast') {
+                panel.innerHTML = `
+                    <div class="control-group">
+                        <div class="range-head">
+                            <label for="strap-width-range">背帶寬度</label>
+                            <span class="range-value" id="strap-width-value">${strapWidthCm.toFixed(2)} cm</span>
+                        </div>
+                        <input id="strap-width-range" type="range" min="0.10" max="0.50" step="0.01" value="${strapWidthCm}" oninput="updateStrapWidth(this.value)">
+                    </div>
+                    <div class="control-group">
+                        <label>五金顏色</label>
+                        <select onchange="currentHardware=this.value; refreshLayers();">
+                            <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>金</option>
+                            <option value="hw-silver" ${currentHardware==='hw-silver'?'selected':''}>銀</option>
+                            <option value="hw-bronze" ${currentHardware==='hw-bronze'?'selected':''}>古銅</option>
+                            <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>槍黑</option>
+                        </select>
+                    </div>
+                `;
+                return;
+            }
             panel.innerHTML = `
                 <div class="control-group">
                     <label>花色款式</label>
@@ -554,6 +622,42 @@
             return maskImageCache.get(maskUrl);
         }
 
+        function updateStrapWidth(value) {
+            strapWidthCm = Number(value);
+            const output = document.getElementById('strap-width-value');
+            if (output) output.textContent = `${strapWidthCm.toFixed(2)} cm`;
+            applyBagPlacement();
+        }
+
+        function updateReferenceGallery() {
+            const gallery = document.getElementById('reference-gallery');
+            const images = [
+                document.getElementById('reference-image-1'),
+                document.getElementById('reference-image-2'),
+                document.getElementById('reference-image-3')
+            ];
+            const isToast = bagStyle.value === 'toast';
+            gallery.hidden = !isToast;
+            if (!isToast) return;
+
+            images[0].src = 'bags/toast/toast_001.jpg';
+            images[1].src = 'bags/toast/toast_002.jpg';
+            const bodyReferences = {
+                'OB11': 'toast_ob11.jpg',
+                '黏土娃': 'toast_Nendoroid_Doll.jpg',
+                '10cm': 'toast_10cm.jpg',
+                '20cm': 'toast_20cm.jpg'
+            };
+            const bodyReference = bodyReferences[subCategory.value];
+            if (bodyReference) {
+                images[2].src = `bags/toast/${bodyReference}`;
+                images[2].style.display = 'block';
+            } else {
+                images[2].removeAttribute('src');
+                images[2].style.display = 'none';
+            }
+        }
+
         async function setMaskLayer(layer, maskUrl, color) {
             const requestKey = `${maskUrl}|${color}`;
             layer.dataset.maskRequest = requestKey;
@@ -578,30 +682,33 @@
 
         function applyStrapPlacement(preset, bagCenterX, bagCenterY, bagWidth, bagHeight, shoulderAnchor = null) {
             const strap = document.getElementById('layer-strap');
+            const styleConfig = bagStyleConfigs[bagStyle.value];
+            const strapAnchor = styleConfig.strapAnchor;
             const bagAngle = bagCalibration.rotationDeg * Math.PI / 180;
-            const localAnchorX = (STRAP_HARDWARE_ANCHOR.xRatio - 0.5) * bagWidth;
-            const localAnchorY = (STRAP_HARDWARE_ANCHOR.yRatio - 0.5) * bagHeight;
+            const localAnchorX = (strapAnchor.xRatio - 0.5) * bagWidth;
+            const localAnchorY = (strapAnchor.yRatio - 0.5) * bagHeight;
             const hardwareX = bagCenterX + (localAnchorX * Math.cos(bagAngle)) - (localAnchorY * Math.sin(bagAngle));
             const hardwareY = bagCenterY + (localAnchorX * Math.sin(bagAngle)) + (localAnchorY * Math.cos(bagAngle));
             const shoulderX = shoulderAnchor ? shoulderAnchor.x : preset.canvasSizePx * preset.strapShoulderXRatio;
             const shoulderY = shoulderAnchor ? shoulderAnchor.y : preset.canvasSizePx * preset.strapShoulderYRatio;
             const deltaX = hardwareX - shoulderX;
             const deltaY = hardwareY - shoulderY;
-            const strapWidth = STRAP_WIDTH_CM * preset.pxPerCm;
+            const strapWidth = strapWidthCm * preset.pxPerCm;
 
             strap.style.left = `${shoulderX}px`;
             strap.style.top = `${shoulderY - (strapWidth / 2)}px`;
             strap.style.width = `${Math.hypot(deltaX, deltaY)}px`;
             strap.style.height = `${strapWidth}px`;
-            strap.style.backgroundColor = currentMainColor;
+            strap.style.backgroundColor = styleConfig.strapColor || currentMainColor;
             strap.style.transform = `rotate(${Math.atan2(deltaY, deltaX) * 180 / Math.PI}deg)`;
         }
 
         function applyBagPlacement() {
             const preset = dollScalePresets[subCategory.value] || dollScalePresets['OB11'];
+            const styleConfig = bagStyleConfigs[bagStyle.value];
             const pxPerCm = preset.pxPerCm;
             const widthPx = bagCalibration.sizeCm * pxPerCm;
-            const heightPx = widthPx / BAG_IMAGE_RATIO;
+            const heightPx = widthPx / styleConfig.imageRatio;
             const originX = preset.canvasSizePx * preset.bodyLeftRatio;
             const originY = preset.canvasSizePx * preset.bodyTopRatio;
             const customAnchors = subCategory.value === '自訂尺寸' && typeof window.getCustomBodyAnchors === 'function'
@@ -641,8 +748,6 @@
         }
 
         function refreshLayers() {
-            const imgPath = 'bags/cat/';
-            
             // 著色底層 DOM
             const lMainColor = document.getElementById('layer-main-color');
             const lTuxColor = document.getElementById('layer-tuxedo-color');
@@ -654,14 +759,34 @@
             const lFace = document.getElementById('layer-face');
             const lHardware = document.getElementById('layer-hardware');
 
+            if (bagStyle.value === 'toast') {
+                lMainColor.style.display = 'none';
+                lTuxColor.style.display = 'none';
+                lCalico.style.display = 'none';
+                lFace.style.display = 'none';
+                lMainLine.style.display = 'block';
+                lMainLine.className = 'bag-layer';
+                lMainLine.src = 'bags/toast/toast_line.png';
+                lTuxLine.style.display = 'block';
+                lTuxLine.className = 'bag-layer lineart-overlay';
+                lTuxLine.src = 'bags/toast/toast_hardware_line.png';
+                setMaskLayer(lHardware, 'bags/toast/toast_hardware_mask.png', hardwareColors[currentHardware]);
+                applyBagPlacement();
+                return;
+            }
+
+            const imgPath = 'bags/cat/';
+
             // 主體底色遮色片與共用線稿
             lMainColor.style.display = 'block';
             setMaskLayer(lMainColor, `${imgPath}cat_base_mask.png`, currentMainColor);
             lMainLine.style.display = 'block';
+            lMainLine.className = 'bag-layer lineart-overlay';
             lMainLine.src = `${imgPath}cat_line.png`;
 
             lTuxColor.style.display = 'none';
             lTuxLine.style.display = 'none';
+            lTuxLine.className = 'bag-layer lineart-overlay';
             lCalico.style.display = 'none';
 
             if (currentCatPattern === 'tuxedo') {
