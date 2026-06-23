@@ -436,6 +436,9 @@
             skinFill.style.backgroundColor = color;
             if (skinPreset.value === 'custom') customSkinColor.value = color;
             dollMask.style.filter = "none";
+            if (typeof window.updateCustomBodySkin === 'function') {
+                window.updateCustomBodySkin(color);
+            }
         }
 
         function handleSkinPresetChange() {
@@ -467,13 +470,9 @@
             if (!isCustomBody) dollMask.src = imageMapping[subCategory.value];
             dollMask.style.display = isCustomBody ? 'none' : 'block';
             skinFill.style.display = isCustomBody ? 'none' : 'block';
-            skinPreset.disabled = isCustomBody;
-            customSkinColor.disabled = isCustomBody;
-            if (isCustomBody) {
-                customSkinRow.style.display = 'none';
-            } else {
-                handleSkinPresetChange();
-            }
+            skinPreset.disabled = false;
+            customSkinColor.disabled = false;
+            handleSkinPresetChange();
             if (typeof window.setCustomBodyActive === 'function') {
                 window.setCustomBodyActive(isCustomBody);
             }
