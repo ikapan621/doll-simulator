@@ -99,6 +99,23 @@
         }
         .color-swatch:hover { transform: scale(1.1); }
         .color-swatch.active { border-color: #333; box-shadow: 0 0 4px rgba(0,0,0,0.3); }
+        .custom-color-swatch {
+            width: 68px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #ff0000;
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+        .custom-color-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
         .skin-color-input { width: 100%; height: 42px; padding: 3px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
         .custom-skin-row { display: none; }
         .custom-body-controls {
@@ -631,6 +648,18 @@
         function buildPalette(targetId, type) {
             const target = document.getElementById(targetId);
             if(!target) return;
+            const isCustomizable = ['main', 'cylinder', 'tuxedo'].includes(type);
+            const getCurrentColor = () => {
+                if(type === 'main') return currentMainColor;
+                if(type === 'cylinder') return currentCylinderColor;
+                if(type === 'tuxedo') return currentTuxedoColor;
+                return '#ffffff';
+            };
+            const setCurrentColor = (hex) => {
+                if(type === 'main') { currentMainColor = hex; }
+                if(type === 'cylinder') { currentCylinderColor = hex; }
+                if(type === 'tuxedo') { currentTuxedoColor = hex; }
+            };
             paletteColors.forEach(color => {
                 const swatch = document.createElement('div');
                 swatch.className = 'color-swatch';
@@ -651,6 +680,30 @@
                 };
                 target.appendChild(swatch);
             });
+            if(isCustomizable) {
+                const customInput = document.createElement('input');
+                customInput.type = 'color';
+                customInput.className = 'custom-color-input';
+                customInput.value = getCurrentColor();
+
+                const customSwatch = document.createElement('button');
+                customSwatch.type = 'button';
+                customSwatch.className = 'color-swatch custom-color-swatch';
+                customSwatch.textContent = '自訂';
+                customSwatch.title = '自訂顏色';
+                if(!paletteColors.some(color => color.hex.toLowerCase() === getCurrentColor().toLowerCase())) {
+                    customSwatch.classList.add('active');
+                }
+                customSwatch.onclick = () => customInput.click();
+                customInput.oninput = function() {
+                    target.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                    customSwatch.classList.add('active');
+                    setCurrentColor(customInput.value);
+                    refreshLayers();
+                };
+                target.appendChild(customSwatch);
+                target.appendChild(customInput);
+            }
         }
 
         const maskImageCache = new Map();
