@@ -228,8 +228,8 @@
         const waistDelta = currentDeltas.waist || 0;
         return {
             shoulder: {
-                x: BODY_LEFT + (199 * DISPLAY_SCALE),
-                y: BODY_TOP + (542 * DISPLAY_SCALE)
+                x: BODY_LEFT + (176 * DISPLAY_SCALE),
+                y: BODY_TOP + (510 * DISPLAY_SCALE)
             },
             hip: {
                 x: BODY_LEFT + (446 * DISPLAY_SCALE),
