@@ -6,6 +6,13 @@
     const BODY_LEFT = (CANVAS_SIZE - (SOURCE.width * DISPLAY_SCALE)) / 2;
     const SOURCE_PX_PER_CM = SOURCE.height / SOURCE.referenceHeightCm;
     const DISPLAY_PX_PER_CM = SOURCE_PX_PER_CM * DISPLAY_SCALE;
+    const CONTROL_BASE_CM = {
+        waist: 0.6,
+        upperArm: 1.5,
+        lowerArm: 1.0,
+        thigh: 1.2,
+        calf: 1.5
+    };
 
     const CUSTOM_DIR = 'parts/custom';
     const PARTS = {
@@ -143,7 +150,8 @@
                 maskImage,
                 box,
                 baseTop: BODY_TOP + (box.fullY * DISPLAY_SCALE),
-                baseHeight: box.fullHeight * DISPLAY_SCALE,
+                sourceHeight: box.fullHeight * DISPLAY_SCALE,
+                baseHeight: part.control ? CONTROL_BASE_CM[part.control] * DISPLAY_PX_PER_CM : box.fullHeight * DISPLAY_SCALE,
                 control: part.control || null
             };
         }));
@@ -163,7 +171,8 @@
             const value = document.getElementById(config.valueId);
             if (value) {
                 const adjustment = adjustments[key];
-                value.textContent = `${adjustment >= 0 ? '+' : ''}${adjustment.toFixed(1)}`;
+                const baseCm = CONTROL_BASE_CM[key];
+                value.textContent = `${baseCm.toFixed(1)} (${adjustment >= 0 ? '+' : ''}${adjustment.toFixed(1)})`;
             }
         });
     }
@@ -174,10 +183,11 @@
         const deltas = {};
 
         Object.entries(rendered).forEach(([name, item]) => {
-            const delta = item.control ? adjustments[item.control] * DISPLAY_PX_PER_CM : 0;
-            item.element.style.height = `${Math.max(1, item.baseHeight + delta)}px`;
+            const adjustment = item.control ? adjustments[item.control] * DISPLAY_PX_PER_CM : 0;
+            const targetHeight = Math.max(1, item.baseHeight + adjustment);
+            item.element.style.height = `${targetHeight}px`;
             if (item.control) {
-                deltas[name] = delta;
+                deltas[name] = targetHeight - item.sourceHeight;
             }
         });
 
@@ -245,7 +255,7 @@
         });
         const resetButton = document.getElementById('reset-custom-body');
         if (resetButton) resetButton.addEventListener('click', resetCustomBody);
-        updateValueLabels(readControlScales());
+        updateValueLabels(readControlAdjustments());
         if (active) applyCustomBodyShape();
     }
 
