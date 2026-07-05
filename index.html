@@ -539,6 +539,20 @@
             `;
         }
 
+        function renderHardwareControl() {
+            return `
+                <div class="control-group">
+                    <label>五金顏色</label>
+                    <select onchange="currentHardware=this.value; refreshLayers();">
+                        <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>金</option>
+                        <option value="hw-silver" ${currentHardware==='hw-silver'?'selected':''}>銀</option>
+                        <option value="hw-bronze" ${currentHardware==='hw-bronze'?'selected':''}>古銅</option>
+                        <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>槍黑</option>
+                    </select>
+                </div>
+            `;
+        }
+
         function renderControlPanel() {
             const panel = document.getElementById('dynamic-options');
             if (bagStyle.value === 'toast') {
@@ -550,15 +564,7 @@
                             <option value="#f7d0b7" ${bagStyleConfigs.toast.strapColor==='#f7d0b7'?'selected':''}>原皮</option>
                         </select>
                     </div>
-                    <div class="control-group">
-                        <label>五金顏色</label>
-                        <select onchange="currentHardware=this.value; refreshLayers();">
-                            <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>金</option>
-                            <option value="hw-silver" ${currentHardware==='hw-silver'?'selected':''}>銀</option>
-                            <option value="hw-bronze" ${currentHardware==='hw-bronze'?'selected':''}>古銅</option>
-                            <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>槍黑</option>
-                        </select>
-                    </div>
+                    ${renderHardwareControl()}
                 `;
                 return;
             }
