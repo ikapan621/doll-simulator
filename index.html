@@ -348,6 +348,7 @@
                 <option value="toast">吐司包</option>
                 <option value="mini_messenger">小型郵差包</option>
                 <option value="cylinder">圓筒包</option>
+                <option value="custom_upload">自訂包款</option>
             </select>
         </div>
 
@@ -410,6 +411,9 @@
         let currentHardware = 'hw-gold';
         let currentExpression = 'face-none';
         let currentCatPattern = 'pure';
+        let customBagUrl = '';
+        let customBagNaturalWidth = 0;
+        let customBagNaturalHeight = 0;
         const STANDARD_CANVAS_SIZE_PX = 550;
         const LARGE_CANVAS_SIZE_PX = Math.round(STANDARD_CANVAS_SIZE_PX * (3262 / 2254));
         const OB11_REFERENCE_HEIGHT_CM = 12.5;
@@ -525,6 +529,19 @@
             applyBagPlacement();
         }
 
+        function handleCustomBagUpload(file) {
+            if (!file) return;
+            if (customBagUrl) URL.revokeObjectURL(customBagUrl);
+            customBagUrl = URL.createObjectURL(file);
+            const image = new Image();
+            image.onload = function() {
+                customBagNaturalWidth = image.naturalWidth || image.width;
+                customBagNaturalHeight = image.naturalHeight || image.height;
+                refreshLayers();
+            };
+            image.src = customBagUrl;
+        }
+
         function renderRangeControl(key, label, min, max, step, suffix) {
             const value = bagCalibration[key];
             const display = key === 'rotationDeg' ? `${value}°` : `${value.toFixed(1)} ${suffix}`;
@@ -555,6 +572,16 @@
 
         function renderControlPanel() {
             const panel = document.getElementById('dynamic-options');
+            if (bagStyle.value === 'custom_upload') {
+                panel.innerHTML = `
+                    <div class="control-group">
+                        <label for="custom-bag-upload">上傳 PNG</label>
+                        <input id="custom-bag-upload" type="file" accept="image/png" onchange="handleCustomBagUpload(this.files && this.files[0])">
+                        <p class="custom-body-note">請上傳透明背景 PNG。建議尺寸 3 x 3 cm、300 dpi。</p>
+                    </div>
+                `;
+                return;
+            }
             if (bagStyle.value === 'toast') {
                 panel.innerHTML = `
                     <div class="control-group">
@@ -829,6 +856,7 @@
             const deltaY = hardwareY - shoulderY;
             const strapWidth = STRAP_WIDTH_CM * preset.pxPerCm;
 
+            strap.style.display = 'block';
             strap.style.left = `${shoulderX}px`;
             strap.style.top = `${shoulderY - (strapWidth / 2)}px`;
             strap.style.width = `${Math.hypot(deltaX, deltaY)}px`;
@@ -841,8 +869,11 @@
             const preset = dollScalePresets[subCategory.value] || dollScalePresets['OB11'];
             const styleConfig = bagStyleConfigs[bagStyle.value];
             const pxPerCm = preset.pxPerCm;
-            const widthPx = bagCalibration.sizeCm * pxPerCm;
-            const heightPx = widthPx / styleConfig.imageRatio;
+            const isCustomUpload = bagStyle.value === 'custom_upload';
+            const widthCm = isCustomUpload ? (customBagNaturalWidth ? (customBagNaturalWidth / 300) * 2.54 : 3) : bagCalibration.sizeCm;
+            const heightCm = isCustomUpload ? (customBagNaturalHeight ? (customBagNaturalHeight / 300) * 2.54 : 3) : (widthCm / styleConfig.imageRatio);
+            const widthPx = widthCm * pxPerCm;
+            const heightPx = heightCm * pxPerCm;
             const originX = preset.canvasSizePx * preset.bodyLeftRatio;
             const originY = preset.canvasSizePx * preset.bodyTopRatio;
             const customAnchors = subCategory.value === '自訂尺寸' && typeof window.getCustomBodyAnchors === 'function'
@@ -871,6 +902,12 @@
                 layer.style.transform = `rotate(${bagCalibration.rotationDeg}deg)`;
             });
 
+            if (isCustomUpload) {
+                const strap = document.getElementById('layer-strap');
+                if (strap) strap.style.display = 'none';
+                return;
+            }
+
             applyStrapPlacement(
                 preset,
                 bagCenterX,
@@ -892,6 +929,21 @@
             const lTuxLine = document.getElementById('layer-tuxedo-line');
             const lFace = document.getElementById('layer-face');
             const lHardware = document.getElementById('layer-hardware');
+            lHardware.style.display = 'block';
+
+            if (bagStyle.value === 'custom_upload') {
+                lMainColor.style.display = 'none';
+                lTuxColor.style.display = 'none';
+                lCalico.style.display = 'none';
+                lFace.style.display = 'none';
+                lHardware.style.display = 'none';
+                lTuxLine.style.display = 'none';
+                lMainLine.style.display = customBagUrl ? 'block' : 'none';
+                lMainLine.className = 'bag-layer';
+                lMainLine.src = customBagUrl || '';
+                applyBagPlacement();
+                return;
+            }
 
             if (bagStyle.value === 'toast') {
                 lMainColor.style.display = 'none';
