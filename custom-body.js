@@ -151,7 +151,7 @@
                 box,
                 baseTop: BODY_TOP + (box.fullY * DISPLAY_SCALE),
                 sourceHeight: box.fullHeight * DISPLAY_SCALE,
-                baseHeight: part.control ? CONTROL_BASE_CM[part.control] * DISPLAY_PX_PER_CM : box.fullHeight * DISPLAY_SCALE,
+                baseHeight: box.fullHeight * DISPLAY_SCALE,
                 control: part.control || null
             };
         }));
@@ -183,7 +183,8 @@
         const deltas = {};
 
         Object.entries(rendered).forEach(([name, item]) => {
-            const adjustment = item.control ? adjustments[item.control] * DISPLAY_PX_PER_CM : 0;
+            const pxPerCm = item.control ? item.sourceHeight / CONTROL_BASE_CM[item.control] : DISPLAY_PX_PER_CM;
+            const adjustment = item.control ? adjustments[item.control] * pxPerCm : 0;
             const targetHeight = Math.max(1, item.baseHeight + adjustment);
             item.element.style.height = `${targetHeight}px`;
             if (item.control) {
