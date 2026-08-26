@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-labelledby="title desc">
+  <title id="title">素體配件模擬器使用說明</title>
+  <desc id="desc">說明如何使用 https://ikapan621.github.io/doll-simulator/ 選擇素體、包款、顏色，以及上傳自訂包款 PNG。</desc>
+  <defs>
+    <style>
+      .bg { fill: #fff8fa; }
+      .panel { fill: #ffffff; stroke: #f0ccd6; stroke-width: 2; }
+      .panel-soft { fill: #fff0f4; }
+      .accent { fill: #ff8daa; }
+      .accent-dark { fill: #cc5873; }
+      .ink { fill: #2f2f33; }
+      .muted { fill: #706b70; }
+      .line { stroke: #e9c4ce; stroke-width: 3; }
+      .grid { stroke: #f2e3e8; stroke-width: 1; }
+      .body { fill: #e3d2b9; stroke: #4a4a4a; stroke-width: 2; }
+      .bag { fill: #d8a36e; stroke: #4a4a4a; stroke-width: 2; }
+      .strap { stroke: #d8a36e; stroke-width: 14; stroke-linecap: round; }
+      .hardware { fill: #ffe898; stroke: #4a4a4a; stroke-width: 2; }
+      .white { fill: #fff; }
+      .button { fill: #ffffff; stroke: #d5cdd1; stroke-width: 2; }
+      .caption { font: 500 26px "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; }
+      .small { font: 500 22px "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; }
+      .tiny { font: 500 19px "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; }
+      .title { font: 800 58px "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; }
+      .subtitle { font: 500 28px "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; }
+      .step-title { font: 800 34px "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; }
+      .step-no { font: 800 30px Arial, sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1080" height="1350"/>
+  <g opacity="0.95">
+    <path class="grid" d="M60 90H1020M60 140H1020M60 190H1020M60 240H1020M60 290H1020M60 340H1020M60 390H1020M60 440H1020M60 490H1020M60 540H1020M60 590H1020M60 640H1020M60 690H1020M60 740H1020M60 790H1020M60 840H1020M60 890H1020M60 940H1020M60 990H1020M60 1040H1020M60 1090H1020M60 1140H1020M60 1190H1020M60 1240H1020"/>
+    <path class="grid" d="M90 70V1270M140 70V1270M190 70V1270M240 70V1270M290 70V1270M340 70V1270M390 70V1270M440 70V1270M490 70V1270M540 70V1270M590 70V1270M640 70V1270M690 70V1270M740 70V1270M790 70V1270M840 70V1270M890 70V1270M940 70V1270M990 70V1270"/>
+  </g>
+
+  <rect x="56" y="50" width="968" height="1238" rx="28" class="white" opacity="0.82"/>
+
+  <text x="86" y="133" class="title ink">素體配件模擬器</text>
+  <text x="88" y="178" class="subtitle muted">使用說明圖</text>
+  <rect x="84" y="215" width="912" height="74" rx="18" class="panel-soft"/>
+  <text x="116" y="262" class="caption ink">網址：https://ikapan621.github.io/doll-simulator/</text>
+
+  <g transform="translate(80 330)">
+    <rect x="0" y="0" width="430" height="700" rx="18" class="panel"/>
+    <text x="34" y="55" class="step-title ink">預覽區</text>
+    <text x="34" y="91" class="small muted">在格線上確認包包比例與位置</text>
+
+    <g transform="translate(88 130)">
+      <path class="grid" d="M0 0H260M0 45H260M0 90H260M0 135H260M0 180H260M0 225H260M0 270H260M0 315H260M0 360H260M0 405H260"/>
+      <path class="grid" d="M0 0V430M45 0V430M90 0V430M135 0V430M180 0V430M225 0V430M260 0V430"/>
+
+      <ellipse cx="130" cy="76" rx="72" ry="82" class="body"/>
+      <circle cx="60" cy="92" r="22" class="body"/>
+      <circle cx="200" cy="92" r="22" class="body"/>
+      <rect x="98" y="151" width="64" height="105" rx="26" class="body"/>
+      <ellipse cx="94" cy="190" rx="28" ry="56" transform="rotate(31 94 190)" class="body"/>
+      <ellipse cx="166" cy="190" rx="28" ry="56" transform="rotate(-31 166 190)" class="body"/>
+      <ellipse cx="105" cy="297" rx="24" ry="76" class="body"/>
+      <ellipse cx="155" cy="297" rx="24" ry="76" class="body"/>
+      <path d="M72 146 C97 172 163 172 188 146" fill="none" stroke="#4a4a4a" stroke-width="2"/>
+
+      <path class="strap" d="M70 143 L150 255"/>
+      <circle cx="150" cy="255" r="12" class="hardware"/>
+      <path class="bag" d="M150 245 C179 218 226 231 231 277 C233 315 208 338 163 333 C120 329 112 283 150 245Z"/>
+      <path d="M138 263 C151 249 163 244 176 240" fill="none" stroke="#4a4a4a" stroke-width="2"/>
+      <path d="M141 321 C164 332 206 322 217 298" fill="none" stroke="#8c664a" stroke-width="3" stroke-dasharray="8 8"/>
+    </g>
+
+    <rect x="34" y="610" width="362" height="48" rx="10" class="button"/>
+    <text x="62" y="642" class="small ink">截圖後可作為尺寸參考</text>
+  </g>
+
+  <g transform="translate(540 330)">
+    <g>
+      <circle cx="32" cy="30" r="26" class="accent"/>
+      <text x="23" y="41" class="step-no">1</text>
+      <text x="76" y="40" class="step-title ink">選擇素體</text>
+      <text x="76" y="81" class="small muted">先選素體類型，再選素體款式。</text>
+      <text x="76" y="116" class="tiny muted">例：12分娃 / OB11、黏土娃、P9、自訂尺寸</text>
+    </g>
+
+    <line x1="32" y1="140" x2="32" y2="188" class="line"/>
+    <g transform="translate(0 195)">
+      <circle cx="32" cy="30" r="26" class="accent"/>
+      <text x="23" y="41" class="step-no">2</text>
+      <text x="76" y="40" class="step-title ink">選擇膚色</text>
+      <text x="76" y="81" class="small muted">預設普肌，也可以選白肌或自訂膚色。</text>
+      <rect x="77" y="105" width="42" height="42" rx="7" fill="#e3d2b9" stroke="#c9c9c9" stroke-width="2"/>
+      <rect x="132" y="105" width="42" height="42" rx="7" fill="#e5dbcc" stroke="#c9c9c9" stroke-width="2"/>
+      <rect x="187" y="105" width="86" height="42" rx="7" fill="#ffffff" stroke="#c9c9c9" stroke-width="2"/>
+      <text x="208" y="133" class="tiny" fill="#4a4a4a">自訂</text>
+    </g>
+
+    <line x1="32" y1="365" x2="32" y2="413" class="line"/>
+    <g transform="translate(0 420)">
+      <circle cx="32" cy="30" r="26" class="accent"/>
+      <text x="23" y="41" class="step-no">3</text>
+      <text x="76" y="40" class="step-title ink">選擇包款</text>
+      <text x="76" y="81" class="small muted">目前可選貓貓包、吐司包、小型郵差包、圓筒包。</text>
+      <text x="76" y="116" class="tiny muted">切換包款後，右側會出現對應的可調項目。</text>
+    </g>
+
+    <line x1="32" y1="585" x2="32" y2="633" class="line"/>
+    <g transform="translate(0 640)">
+      <circle cx="32" cy="30" r="26" class="accent"/>
+      <text x="23" y="41" class="step-no">4</text>
+      <text x="76" y="40" class="step-title ink">調整顏色</text>
+      <text x="76" y="81" class="small muted">依包款調整主體色、區塊色、五金色或背帶色。</text>
+      <rect x="77" y="105" width="42" height="42" rx="7" fill="#d8a36e" stroke="#c9c9c9" stroke-width="2"/>
+      <rect x="132" y="105" width="42" height="42" rx="7" fill="#b77946" stroke="#c9c9c9" stroke-width="2"/>
+      <rect x="187" y="105" width="42" height="42" rx="7" fill="#ffe898" stroke="#c9c9c9" stroke-width="2"/>
+      <rect x="242" y="105" width="42" height="42" rx="7" fill="#424039" stroke="#c9c9c9" stroke-width="2"/>
+    </g>
+
+    <line x1="32" y1="810" x2="32" y2="858" class="line"/>
+    <g transform="translate(0 865)">
+      <circle cx="32" cy="30" r="26" class="accent"/>
+      <text x="23" y="41" class="step-no">5</text>
+      <text x="76" y="40" class="step-title ink">自訂包款</text>
+      <text x="76" y="81" class="small muted">上傳透明背景 PNG，即可預覽自己的包包。</text>
+      <text x="76" y="116" class="tiny muted">建議尺寸：3 x 3 cm、300 dpi，位置固定在骨盆側腰。</text>
+    </g>
+  </g>
+
+  <rect x="84" y="1100" width="912" height="108" rx="18" class="panel"/>
+  <text x="120" y="1149" class="caption ink">注意事項</text>
+  <text x="120" y="1188" class="small muted">背帶寬度是固定款式，不需要另外調整。預覽用途以參考尺寸為主。</text>
+
+  <rect x="84" y="1240" width="912" height="48" rx="24" class="accent"/>
+  <text x="228" y="1272" class="small white">開啟網站後，照順序選擇素體、包款與顏色即可開始預覽</text>
+</svg>
