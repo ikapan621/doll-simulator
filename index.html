@@ -405,9 +405,26 @@
             body { flex-direction: column; padding-top: 50px; }
             .mobile-header { display: flex; }
             .control-panel {
-                position: fixed; top: 0; left: 0; height: 100vh; width: 300px;
+                position: fixed; top: 0; left: 0;
+                width: min(400px, 100vw);
+                min-width: 0;
+                height: 100vh;
+                height: 100dvh;
+                box-sizing: border-box;
+                padding-bottom: max(24px, env(safe-area-inset-bottom));
+                overflow-x: hidden;
+                overflow-y: scroll;
+                overscroll-behavior-y: contain;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-gutter: stable;
+                scrollbar-width: thin;
+                scrollbar-color: #888 #eee;
                 transform: translateX(-100%); box-shadow: 4px 0 10px rgba(0,0,0,0.2);
             }
+            .control-panel > * { flex-shrink: 0; }
+            .control-panel::-webkit-scrollbar { width: 8px; }
+            .control-panel::-webkit-scrollbar-track { background: #eee; }
+            .control-panel::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
             .control-panel.open { transform: translateX(0); }
             .close-sidebar-btn { display: block; }
             .display-area { width: 100%; height: calc(100vh - 50px); align-items: flex-start; }
