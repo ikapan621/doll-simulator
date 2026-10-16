@@ -221,7 +221,36 @@
             overflow: hidden;
             border: 1px solid #ccc;
             background: #fafafa;
+            padding: 0;
+            cursor: zoom-in;
         }
+
+        .reference-slot:focus-visible { outline: 2px solid #555; outline-offset: 3px; }
+        .reference-lightbox {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100dvh;
+            max-width: none;
+            max-height: none;
+            margin: 0;
+            padding: 56px 24px;
+            box-sizing: border-box;
+            border: 0;
+            background: transparent;
+        }
+        .reference-lightbox[open] { display: grid; place-items: center; }
+        .reference-lightbox::backdrop { background: rgba(70,70,70,0.35); }
+        .reference-lightbox img {
+            display: block;
+            max-width: 100%;
+            max-height: calc(100dvh - 112px);
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+        }
+        .reference-lightbox-close { position: absolute; top: 12px; right: 16px; width: 40px; height: 40px; }
 
         .reference-slot img {
             display: block;
@@ -428,9 +457,9 @@
             </div>
         </div>
         <aside id="reference-gallery" class="reference-gallery" aria-label="實品參考圖片" hidden>
-            <div class="reference-slot"><img id="reference-image-1" loading="lazy" alt="包包實品參考圖一"></div>
-            <div class="reference-slot"><img id="reference-image-2" loading="lazy" alt="包包實品參考圖二"></div>
-            <div class="reference-slot"><img id="reference-image-3" loading="lazy" alt="對應素體實品參考圖"></div>
+            <button class="reference-slot" type="button" aria-label="放大包包實品參考圖一" aria-haspopup="dialog" aria-controls="reference-lightbox"><img id="reference-image-1" loading="lazy" alt="包包實品參考圖一"></button>
+            <button class="reference-slot" type="button" aria-label="放大包包實品參考圖二" aria-haspopup="dialog" aria-controls="reference-lightbox"><img id="reference-image-2" loading="lazy" alt="包包實品參考圖二"></button>
+            <button class="reference-slot" type="button" aria-label="放大對應素體實品參考圖" aria-haspopup="dialog" aria-controls="reference-lightbox"><img id="reference-image-3" loading="lazy" alt="對應素體實品參考圖"></button>
         </aside>
         </div>
     </div>
@@ -850,8 +879,8 @@
                     path: 'bags/cylinder/',
                     fixed: ['cylinder_01.jpg', 'cylinder_02.jpg'],
                     bodies: {
-                        'OB11': '_Nendoroid_Doll_ob11.jpg',
-                        '黏土娃': 'cylinder__Nendoroid_Doll.jpg',
+                        'OB11': 'cylinder_Nendoroid_Doll_ob11.jpg',
+                        '黏土娃': 'cylinder_Nendoroid_Doll.jpg',
                         '10cm': 'cylinder_10cm.jpg',
                         '20cm': 'cylinder_20cm.jpg'
                     }
@@ -1109,7 +1138,28 @@
         <p><a href="https://www.plurk.com/ikapan621" target="_blank" rel="noopener noreferrer">https://www.plurk.com/ikapan621</a></p>
         <p><a href="https://docs.google.com/forms/d/e/1FAIpQLSdjTFnIuiBlu2uwCnOAAHg_P2z6VnVZQC-gSP0JYOghjZchWA/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer">BUG回報與建議</a></p>
     </dialog>
+    <dialog class="reference-lightbox" id="reference-lightbox" aria-label="實品參考圖片預覽">
+        <img id="reference-lightbox-image" alt="">
+        <button class="creator-dialog-close reference-lightbox-close" id="reference-lightbox-close" type="button" aria-label="關閉圖片預覽" title="關閉圖片預覽">&times;</button>
+    </dialog>
     <script>
+        const lightbox = document.getElementById('reference-lightbox');
+        const lightboxImage = document.getElementById('reference-lightbox-image');
+        document.querySelectorAll('.reference-slot').forEach((button) => {
+            button.addEventListener('click', () => {
+                const image = button.querySelector('img');
+                if (!image.getAttribute('src') || !image.complete || !image.naturalWidth) return;
+                lightboxImage.src = image.currentSrc || image.src;
+                lightboxImage.alt = image.alt;
+                lightbox.showModal();
+            });
+        });
+        document.getElementById('reference-lightbox-close').addEventListener('click', () => lightbox.close());
+        lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) lightbox.close();
+        });
+        lightbox.addEventListener('close', () => lightboxImage.removeAttribute('src'));
+
         const creatorDialog = document.getElementById('creator-info-dialog');
         document.getElementById('creator-info-open').addEventListener('click', () => creatorDialog.showModal());
         document.getElementById('creator-info-close').addEventListener('click', () => creatorDialog.close());
