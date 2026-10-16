@@ -498,6 +498,7 @@
             </select>
         </div>
 
+        <p id="custom-bag-disclaimer" class="custom-body-note" hidden>預覽僅供參考，尺寸以實品為準。</p>
         <div id="dynamic-options" class="dynamic-group">
             </div>
     </div>
@@ -794,6 +795,7 @@
 
         function renderControlPanel() {
             const panel = document.getElementById('dynamic-options');
+            document.getElementById('custom-bag-disclaimer').hidden = bagStyle.value !== 'custom_upload';
             if (bagStyle.value === 'custom_upload') {
                 panel.innerHTML = `
                     <div class="control-group">
