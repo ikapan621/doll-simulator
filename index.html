@@ -71,6 +71,51 @@
         }
 
         h2 { margin: 0 0 5px 0; font-size: 1.4rem; color: #333; }
+        .brand-heading { display: flex; align-items: center; gap: 10px; }
+        .brand-heading h2 { margin: 0; min-width: 0; }
+        .creator-logo-button {
+            flex: 0 0 44px;
+            width: 44px;
+            height: 44px;
+            padding: 2px;
+            border: 0;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+        }
+        .creator-logo-button img { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .creator-logo-button:hover { background: #f5f5f5; }
+        .creator-logo-button:focus-visible { outline: 2px solid #555; outline-offset: 2px; }
+        .creator-dialog {
+            width: min(340px, calc(100vw - 48px));
+            box-sizing: border-box;
+            max-height: calc(100dvh - 48px);
+            overflow: auto;
+            padding: 24px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #333;
+            background: #fff;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+        }
+        .creator-dialog::backdrop { background: rgba(0,0,0,0.35); }
+        .creator-dialog-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .creator-dialog h2 { font-size: 1.15rem; margin: 0; }
+        .creator-dialog p { margin: 18px 0 0; line-height: 1.6; overflow-wrap: anywhere; }
+        .creator-dialog a { color: #355f68; text-underline-offset: 3px; }
+        .creator-dialog-close {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            color: #444;
+            font-size: 24px;
+            cursor: pointer;
+        }
         .row-group { display: flex; gap: 12px; width: 100%; }
         .row-group .control-group { flex: 1; }
         .control-group { display: flex; flex-direction: column; gap: 6px; }
@@ -278,7 +323,12 @@
 
     <div class="control-panel" id="sidebar">
         <button class="close-sidebar-btn" onclick="toggleSidebar()">✕ 收起選單</button>
-        <h2>素體配件模擬器</h2>
+        <div class="brand-heading">
+            <button class="creator-logo-button" id="creator-info-open" type="button" aria-label="製作者資訊" title="製作者資訊" aria-haspopup="dialog" aria-controls="creator-info-dialog">
+                <img src="creator-logo.png" alt="墨魚吐司 LOGO" width="44" height="44">
+            </button>
+            <h2>素體配件模擬器</h2>
+        </div>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 0;">
         
         <div class="row-group">
@@ -1049,6 +1099,27 @@
             updateSubCategory();
             handleSkinPresetChange();
         }
+    </script>
+    <dialog class="creator-dialog" id="creator-info-dialog" aria-labelledby="creator-info-title">
+        <div class="creator-dialog-heading">
+            <h2 id="creator-info-title">製作者資訊</h2>
+            <button class="creator-dialog-close" id="creator-info-close" type="button" aria-label="關閉" title="關閉">&times;</button>
+        </div>
+        <p>製作者：@ikapan621</p>
+        <p><a href="https://www.plurk.com/ikapan621" target="_blank" rel="noopener noreferrer">https://www.plurk.com/ikapan621</a></p>
+        <p><a href="https://docs.google.com/forms/d/e/1FAIpQLSdjTFnIuiBlu2uwCnOAAHg_P2z6VnVZQC-gSP0JYOghjZchWA/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer">BUG回報與建議</a></p>
+    </dialog>
+    <script>
+        const creatorDialog = document.getElementById('creator-info-dialog');
+        document.getElementById('creator-info-open').addEventListener('click', () => creatorDialog.showModal());
+        document.getElementById('creator-info-close').addEventListener('click', () => creatorDialog.close());
+        creatorDialog.addEventListener('click', (event) => {
+            if (event.target !== creatorDialog) return;
+            const bounds = creatorDialog.getBoundingClientRect();
+            if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) {
+                creatorDialog.close();
+            }
+        });
     </script>
     <script src="custom-body.js"></script>
 </body>
