@@ -146,6 +146,8 @@
         .color-swatch:hover { transform: scale(1.1); }
         .color-swatch.active { border-color: #333; box-shadow: 0 0 4px rgba(0,0,0,0.3); }
         .custom-color-swatch {
+            position: relative;
+            overflow: hidden;
             width: 76px;
             height: 34px;
             box-sizing: border-box;
@@ -162,11 +164,17 @@
         }
         .custom-color-input {
             position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            pointer-events: none;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            opacity: 0.01;
+            cursor: pointer;
+            font-size: 16px;
         }
+        .custom-color-swatch:focus-within { outline: 2px solid #555; outline-offset: 2px; }
         .skin-color-input { width: 100%; height: 42px; padding: 3px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
         .custom-skin-row { display: none; }
         .custom-body-controls {
@@ -956,6 +964,8 @@
                     if(type === 'main') { currentMainColor = color.hex; }
                     if(type === 'cylinder') { currentCylinderColor = color.hex; }
                     if(type === 'tuxedo') { currentTuxedoColor = color.hex; }
+                    const customInput = target.querySelector('.custom-color-input');
+                    if (customInput) customInput.value = color.hex;
                     refreshLayers();
                 };
                 target.appendChild(swatch);
@@ -965,24 +975,25 @@
                 customInput.type = 'color';
                 customInput.className = 'custom-color-input';
                 customInput.value = getCurrentColor();
+                customInput.setAttribute('aria-label', type === 'tuxedo' ? '自訂區塊顏色' : '自訂包包顏色');
 
-                const customSwatch = document.createElement('button');
-                customSwatch.type = 'button';
+                const customSwatch = document.createElement('label');
                 customSwatch.className = 'color-swatch custom-color-swatch';
                 customSwatch.textContent = '自訂';
                 customSwatch.title = '自訂顏色';
                 if(!paletteColors.some(color => color.hex.toLowerCase() === getCurrentColor().toLowerCase())) {
                     customSwatch.classList.add('active');
                 }
-                customSwatch.onclick = () => customInput.click();
-                customInput.oninput = function() {
+                const applyCustomColor = function() {
                     target.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
                     customSwatch.classList.add('active');
                     setCurrentColor(customInput.value);
                     refreshLayers();
                 };
+                customInput.addEventListener('input', applyCustomColor);
+                customInput.addEventListener('change', applyCustomColor);
+                customSwatch.appendChild(customInput);
                 target.appendChild(customSwatch);
-                target.appendChild(customInput);
             }
         }
 
