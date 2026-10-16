@@ -180,6 +180,73 @@
         .custom-body-control { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
         .custom-body-control input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: #ff8fa3; }
         .custom-body-value { color: #777; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+        .custom-bag-size-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .custom-bag-size-fields input {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            color: #333;
+            font: inherit;
+            font-variant-numeric: tabular-nums;
+        }
+        .custom-bag-size-fields input:disabled { background: #eee; color: #888; }
+        .custom-bag-preview-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .custom-bag-switch {
+            appearance: none;
+            position: relative;
+            flex: 0 0 44px;
+            width: 44px;
+            height: 26px;
+            margin: 0;
+            border: 1px solid #888;
+            border-radius: 13px;
+            background: #aaa;
+            cursor: pointer;
+        }
+        .custom-bag-switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.15s;
+        }
+        .custom-bag-switch:checked { background: #52796f; border-color: #52796f; }
+        .custom-bag-switch:checked::before { transform: translateX(18px); }
+        .custom-bag-switch:focus-visible { outline: 2px solid #555; outline-offset: 3px; }
+        .custom-bag-switch:disabled { opacity: 0.45; cursor: default; }
+        .custom-bag-error { margin: 0; color: #a22d36; font-size: 0.82rem; }
+        .custom-bag-error:empty { display: none; }
+        .custom-bag-measure {
+            position: absolute;
+            z-index: 30;
+            pointer-events: none;
+            transform-origin: center center;
+            color: #b53e49;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+        .custom-bag-measure[hidden] { display: none; }
+        .bag-measure-width { position: absolute; left: 0; right: 0; bottom: -15px; border-top: 1px solid currentColor; }
+        .bag-measure-height { position: absolute; top: 0; bottom: 0; right: -15px; border-left: 1px solid currentColor; }
+        .bag-measure-width::before, .bag-measure-width::after,
+        .bag-measure-height::before, .bag-measure-height::after { content: ''; position: absolute; background: currentColor; }
+        .bag-measure-width::before, .bag-measure-width::after { width: 1px; height: 8px; top: -4px; }
+        .bag-measure-width::before { left: 0; }
+        .bag-measure-width::after { right: 0; }
+        .bag-measure-height::before, .bag-measure-height::after { height: 1px; width: 8px; left: -4px; }
+        .bag-measure-height::before { top: 0; }
+        .bag-measure-height::after { bottom: 0; }
+        .bag-measure-value { position: absolute; white-space: nowrap; padding: 2px 4px; border-radius: 2px; background: rgba(255,255,255,0.94); line-height: 1.3; }
+        .bag-measure-width .bag-measure-value { left: 50%; top: 4px; transform: translateX(-50%); }
+        .bag-measure-height .bag-measure-value { left: 6px; top: 50%; transform: translateY(-50%); }
         .reset-custom-body {
             min-height: 36px;
             border: 1px solid #ccc;
@@ -454,6 +521,10 @@
                 <img id="layer-main-line" class="bag-layer lineart-overlay" style="z-index:20;" src="" alt="">
                 <img id="layer-tuxedo-line" class="bag-layer lineart-overlay" style="z-index:21; display:none;" src="" alt="">
                 <img id="layer-face" class="bag-layer" style="z-index:22;" src="" alt="">
+                <div id="custom-bag-measure" class="custom-bag-measure" aria-hidden="true" hidden>
+                    <div class="bag-measure-width"><span id="custom-bag-width-label" class="bag-measure-value"></span></div>
+                    <div class="bag-measure-height"><span id="custom-bag-height-label" class="bag-measure-value"></span></div>
+                </div>
             </div>
         </div>
         <aside id="reference-gallery" class="reference-gallery" aria-label="實品參考圖片" hidden>
@@ -493,6 +564,10 @@
         let customBagUrl = '';
         let customBagNaturalWidth = 0;
         let customBagNaturalHeight = 0;
+        let customBagScale = 1;
+        let customBagShowDimensions = false;
+        let customBagUploadVersion = 0;
+        let customBagUploadError = '';
         const STANDARD_CANVAS_SIZE_PX = 550;
         const LARGE_CANVAS_SIZE_PX = Math.round(STANDARD_CANVAS_SIZE_PX * (3262 / 2254));
         const OB11_REFERENCE_HEIGHT_CM = 12.5;
@@ -610,15 +685,83 @@
 
         function handleCustomBagUpload(file) {
             if (!file) return;
-            if (customBagUrl) URL.revokeObjectURL(customBagUrl);
-            customBagUrl = URL.createObjectURL(file);
+            const uploadVersion = ++customBagUploadVersion;
+            if (file.type !== 'image/png' && !(!file.type && /\.png$/i.test(file.name))) {
+                customBagUploadError = '請選擇 PNG 圖片。';
+                syncCustomBagControls();
+                return;
+            }
+            customBagUploadError = '';
+            syncCustomBagControls();
+            const nextUrl = URL.createObjectURL(file);
             const image = new Image();
             image.onload = function() {
+                if (uploadVersion !== customBagUploadVersion) {
+                    URL.revokeObjectURL(nextUrl);
+                    return;
+                }
+                if (customBagUrl) URL.revokeObjectURL(customBagUrl);
+                customBagUrl = nextUrl;
                 customBagNaturalWidth = image.naturalWidth || image.width;
                 customBagNaturalHeight = image.naturalHeight || image.height;
+                customBagScale = 1;
+                syncCustomBagControls();
                 refreshLayers();
             };
-            image.src = customBagUrl;
+            image.onerror = function() {
+                URL.revokeObjectURL(nextUrl);
+                if (uploadVersion !== customBagUploadVersion) return;
+                customBagUploadError = '圖片無法讀取，請重新選擇 PNG 圖片。';
+                syncCustomBagControls();
+            };
+            image.src = nextUrl;
+        }
+
+        function getCustomBagSizeCm() {
+            return {
+                width: (customBagNaturalWidth / 300) * 2.54 * customBagScale,
+                height: (customBagNaturalHeight / 300) * 2.54 * customBagScale
+            };
+        }
+
+        function syncCustomBagControls(editingAxis) {
+            const ready = Boolean(customBagUrl && customBagNaturalWidth && customBagNaturalHeight);
+            const size = getCustomBagSizeCm();
+            ['width', 'height'].forEach((axis) => {
+                const input = document.getElementById(`custom-bag-${axis}`);
+                if (!input) return;
+                input.disabled = !ready;
+                if (axis !== editingAxis) input.value = ready ? Number(size[axis].toFixed(2)) : '';
+            });
+            const toggle = document.getElementById('custom-bag-dimensions-toggle');
+            if (toggle) {
+                toggle.disabled = !ready;
+                toggle.checked = customBagShowDimensions;
+            }
+            const reset = document.getElementById('custom-bag-reset-size');
+            if (reset) reset.disabled = !ready;
+            const error = document.getElementById('custom-bag-upload-error');
+            if (error) error.textContent = customBagUploadError;
+        }
+
+        function updateCustomBagSize(axis, value) {
+            const cm = Number(value);
+            if (!customBagUrl || !Number.isFinite(cm) || cm < 0.01) return;
+            const sourcePixels = axis === 'width' ? customBagNaturalWidth : customBagNaturalHeight;
+            customBagScale = cm / ((sourcePixels / 300) * 2.54);
+            syncCustomBagControls(axis);
+            applyBagPlacement();
+        }
+
+        function resetCustomBagSize() {
+            customBagScale = 1;
+            syncCustomBagControls();
+            applyBagPlacement();
+        }
+
+        function toggleCustomBagDimensions(enabled) {
+            customBagShowDimensions = enabled;
+            applyBagPlacement();
         }
 
         function renderRangeControl(key, label, min, max, step, suffix) {
@@ -657,8 +800,25 @@
                         <label for="custom-bag-upload">上傳 PNG</label>
                         <input id="custom-bag-upload" type="file" accept="image/png" onchange="handleCustomBagUpload(this.files && this.files[0])">
                         <p class="custom-body-note">請上傳透明背景 PNG。建議尺寸 3 x 3 cm、300 dpi。</p>
+                        <p id="custom-bag-upload-error" class="custom-bag-error" role="alert"></p>
+                    </div>
+                    <div class="custom-bag-size-fields">
+                        <div class="control-group">
+                            <label for="custom-bag-width">寬（cm）</label>
+                            <input id="custom-bag-width" type="number" min="0.01" step="0.01" inputmode="decimal" disabled oninput="updateCustomBagSize('width', this.value)" onchange="syncCustomBagControls()">
+                        </div>
+                        <div class="control-group">
+                            <label for="custom-bag-height">高（cm）</label>
+                            <input id="custom-bag-height" type="number" min="0.01" step="0.01" inputmode="decimal" disabled oninput="updateCustomBagSize('height', this.value)" onchange="syncCustomBagControls()">
+                        </div>
+                    </div>
+                    <button id="custom-bag-reset-size" class="reset-custom-body" type="button" disabled onclick="resetCustomBagSize()">重置尺寸</button>
+                    <div class="custom-bag-preview-row">
+                        <label for="custom-bag-dimensions-toggle">尺寸預覽</label>
+                        <input id="custom-bag-dimensions-toggle" class="custom-bag-switch" type="checkbox" role="switch" disabled onchange="toggleCustomBagDimensions(this.checked)">
                     </div>
                 `;
+                syncCustomBagControls();
                 return;
             }
             if (bagStyle.value === 'toast') {
@@ -959,8 +1119,9 @@
             const styleConfig = bagStyleConfigs[bagStyle.value];
             const pxPerCm = preset.pxPerCm;
             const isCustomUpload = bagStyle.value === 'custom_upload';
-            const widthCm = isCustomUpload ? (customBagNaturalWidth ? (customBagNaturalWidth / 300) * 2.54 : 3) : bagCalibration.sizeCm;
-            const heightCm = isCustomUpload ? (customBagNaturalHeight ? (customBagNaturalHeight / 300) * 2.54 : 3) : (widthCm / styleConfig.imageRatio);
+            const customSize = getCustomBagSizeCm();
+            const widthCm = isCustomUpload ? customSize.width : bagCalibration.sizeCm;
+            const heightCm = isCustomUpload ? customSize.height : (widthCm / styleConfig.imageRatio);
             const widthPx = widthCm * pxPerCm;
             const heightPx = heightCm * pxPerCm;
             const originX = preset.canvasSizePx * preset.bodyLeftRatio;
@@ -990,6 +1151,18 @@
                 layer.style.top = `${topPx}px`;
                 layer.style.transform = `rotate(${bagCalibration.rotationDeg}deg)`;
             });
+
+            const measure = document.getElementById('custom-bag-measure');
+            measure.hidden = !(isCustomUpload && customBagUrl && customBagShowDimensions);
+            if (!measure.hidden) {
+                measure.style.width = `${widthPx}px`;
+                measure.style.height = `${heightPx}px`;
+                measure.style.left = `${leftPx}px`;
+                measure.style.top = `${topPx}px`;
+                measure.style.transform = `rotate(${bagCalibration.rotationDeg}deg)`;
+                document.getElementById('custom-bag-width-label').textContent = `${Number(widthCm.toFixed(2))} cm`;
+                document.getElementById('custom-bag-height-label').textContent = `${Number(heightCm.toFixed(2))} cm`;
+            }
 
             if (isCustomUpload) {
                 const strap = document.getElementById('layer-strap');
@@ -1135,7 +1308,7 @@
             <button class="creator-dialog-close" id="creator-info-close" type="button" aria-label="關閉" title="關閉">&times;</button>
         </div>
         <p>製作者：@ikapan621</p>
-        <p><a href="https://www.plurk.com/ikapan621" target="_blank" rel="noopener noreferrer">https://www.plurk.com/ikapan621</a></p>
+        <p><a href="https://lit.link/zh-tw/ikapan621" target="_blank" rel="noopener noreferrer">https://lit.link/zh-tw/ikapan621</a></p>
         <p><a href="https://docs.google.com/forms/d/e/1FAIpQLSdjTFnIuiBlu2uwCnOAAHg_P2z6VnVZQC-gSP0JYOghjZchWA/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer">BUG回報與建議</a></p>
     </dialog>
     <dialog class="reference-lightbox" id="reference-lightbox" aria-label="實品參考圖片預覽">
