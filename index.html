@@ -77,6 +77,8 @@
         .sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .sidebar-backdrop { display: none; }
         .canvas-viewport { flex: 0 0 auto; }
+        .bag-options { display: flex; flex-direction: column; gap: 15px; }
+        .mobile-bag-controls { display: none; }
         .creator-logo-button {
             flex: 0 0 44px;
             width: 44px;
@@ -484,9 +486,9 @@
                 background: #fff;
                 border: 1px solid #ddd;
             }
-            .control-panel .control-group { min-width: 0; }
-            .control-panel select, .custom-bag-size-fields input { min-height: 44px; font-size: 16px; box-sizing: border-box; width: 100%; min-width: 0; }
-            .control-panel .reset-custom-body, .skin-color-input { min-height: 44px; }
+            .control-panel .control-group, .bag-options .control-group { min-width: 0; }
+            .control-panel select, .bag-options select, .custom-bag-size-fields input { min-height: 44px; font-size: 16px; box-sizing: border-box; width: 100%; min-width: 0; }
+            .control-panel .reset-custom-body, .bag-options .reset-custom-body, .skin-color-input { min-height: 44px; }
             #custom-bag-upload { max-width: 100%; min-height: 44px; }
             #custom-bag-upload::file-selector-button { min-height: 40px; }
             .color-swatch { width: 40px; height: 40px; box-sizing: border-box; flex: 0 0 40px; }
@@ -513,6 +515,30 @@
                 gap: 8px;
             }
             .reference-slot { width: 100%; min-width: 0; box-sizing: border-box; }
+            .bag-section-divider, #desktop-bag-options-host { display: none; }
+            .mobile-bag-controls {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+                border: 1px solid #d8d8d8;
+                border-radius: 4px;
+                background: #fff;
+            }
+            .mobile-bag-controls summary {
+                min-height: 48px;
+                box-sizing: border-box;
+                padding: 14px 12px;
+                color: #4A4A4A;
+                font-size: 15px;
+                font-weight: 700;
+                line-height: 20px;
+                cursor: pointer;
+            }
+            .mobile-bag-controls summary::marker { color: #80634e; }
+            .mobile-bag-controls summary:focus-visible { outline: 2px solid #80634e; outline-offset: -2px; }
+            .mobile-bag-controls[open] summary { border-bottom: 1px solid #eee; }
+            #mobile-bag-options-host { padding: 12px; }
+            .mobile-bag-controls .dynamic-group { background: transparent; border: 0; border-radius: 0; padding: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
             .control-panel { transition: none; }
@@ -596,8 +622,10 @@
             <button id="reset-custom-body" class="reset-custom-body" type="button">重置尺寸</button>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
+        <hr class="bag-section-divider" style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
 
+        <div id="desktop-bag-options-host">
+        <div id="bag-options" class="bag-options">
         <div class="control-group">
             <label for="bag-style">包包款式</label>
             <select id="bag-style" onchange="onDollOrBagChange()">
@@ -612,6 +640,8 @@
         <p id="custom-bag-disclaimer" class="custom-body-note" hidden>預覽僅供參考，尺寸以實品為準。</p>
         <div id="dynamic-options" class="dynamic-group">
             </div>
+        </div>
+        </div>
     </div>
 
     <div class="display-area">
@@ -641,6 +671,10 @@
             </div>
         </div>
         </div>
+        <details id="mobile-bag-controls" class="mobile-bag-controls">
+            <summary>包包款式與配色</summary>
+            <div id="mobile-bag-options-host"></div>
+        </details>
         <aside id="reference-gallery" class="reference-gallery" aria-label="實品參考圖片" hidden>
             <button class="reference-slot" type="button" aria-label="放大包包實品參考圖一" aria-haspopup="dialog" aria-controls="reference-lightbox"><img id="reference-image-1" loading="lazy" alt="包包實品參考圖一"></button>
             <button class="reference-slot" type="button" aria-label="放大包包實品參考圖二" aria-haspopup="dialog" aria-controls="reference-lightbox"><img id="reference-image-2" loading="lazy" alt="包包實品參考圖二"></button>
@@ -732,6 +766,9 @@
 
         function fitMobilePreview() {
             const viewport = document.querySelector('.canvas-viewport');
+            const bagOptions = document.getElementById('bag-options');
+            const bagHost = document.getElementById(mobileLayoutMedia.matches ? 'mobile-bag-options-host' : 'desktop-bag-options-host');
+            if (bagOptions.parentElement !== bagHost) bagHost.appendChild(bagOptions);
             sidebar.inert = mobileLayoutMedia.matches && !sidebar.classList.contains('open');
             if (!mobileLayoutMedia.matches) {
                 viewport.style.width = '';
@@ -755,6 +792,7 @@
         }
 
         window.addEventListener('resize', fitMobilePreview);
+        document.getElementById('mobile-bag-controls').addEventListener('toggle', fitMobilePreview);
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && !document.querySelector('dialog[open]') && sidebar.classList.contains('open')) {
                 toggleSidebar(false);
