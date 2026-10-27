@@ -539,6 +539,11 @@
             .mobile-bag-controls[open] summary { border-bottom: 1px solid #eee; }
             #mobile-bag-options-host { padding: 12px; }
             .mobile-bag-controls .dynamic-group { background: transparent; border: 0; border-radius: 0; padding: 0; }
+            .mobile-bag-controls .bag-options.has-cat-pattern { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            .mobile-bag-controls .has-cat-pattern > .control-group { grid-column: 1; grid-row: 1; }
+            .mobile-bag-controls .has-cat-pattern #dynamic-options { display: contents; }
+            .mobile-bag-controls .has-cat-pattern #dynamic-options > * { grid-column: 1 / -1; }
+            .mobile-bag-controls .has-cat-pattern #dynamic-options > .cat-pattern-control { grid-column: 2; grid-row: 1; }
         }
         @media (prefers-reduced-motion: reduce) {
             .control-panel { transition: none; }
@@ -990,6 +995,7 @@
 
         function renderControlPanel() {
             const panel = document.getElementById('dynamic-options');
+            document.getElementById('bag-options').classList.toggle('has-cat-pattern', bagStyle.value === 'cat');
             document.getElementById('custom-bag-disclaimer').hidden = bagStyle.value !== 'custom_upload';
             if (bagStyle.value === 'custom_upload') {
                 panel.innerHTML = `
@@ -1070,8 +1076,8 @@
                 return;
             }
             panel.innerHTML = `
-                <div class="control-group">
-                    <label>花色款式</label>
+                <div class="control-group cat-pattern-control">
+                    <label for="cat-pattern-select">花色款式</label>
                     <select id="cat-pattern-select" onchange="currentCatPattern=this.value; onDollOrBagChange();">
                         <option value="pure" ${currentCatPattern==='pure'?'selected':''}>純色款</option>
                         <option value="tuxedo" ${currentCatPattern==='tuxedo'?'selected':''}>賓士款</option>
