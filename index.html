@@ -74,6 +74,9 @@
         h2 { margin: 0 0 5px 0; font-size: 1.4rem; color: #333; }
         .brand-heading { display: flex; align-items: center; gap: 10px; }
         .brand-heading h2 { margin: 0; min-width: 0; font-size: 1.15rem; line-height: 1.45; }
+        .sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .sidebar-backdrop { display: none; }
+        .canvas-viewport { flex: 0 0 auto; }
         .creator-logo-button {
             flex: 0 0 44px;
             width: 44px;
@@ -239,7 +242,7 @@
             pointer-events: none;
             transform-origin: center center;
             color: #b53e49;
-            font-size: 12px;
+            font-size: calc(12px / var(--preview-scale, 1));
             font-variant-numeric: tabular-nums;
         }
         .custom-bag-measure[hidden] { display: none; }
@@ -401,16 +404,44 @@
         .face-foil-rose    { filter: invert(40%) sepia(30%) saturate(400%) hue-rotate(320deg) brightness(105%) contrast(90%); } /* 玫瑰金 */
         .face-foil-black   { filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(10%) contrast(100%); }      /* 燙金-黑 */
 
-        @media (max-width: 768px) {
-            body { flex-direction: column; padding-top: 50px; }
-            .mobile-header { display: flex; }
+        @media (max-width: 768px), (max-width: 1024px) and (pointer: coarse) {
+            body {
+                flex-direction: column;
+                height: 100vh;
+                height: 100dvh;
+                padding-top: calc(64px + env(safe-area-inset-top));
+            }
+            .mobile-header {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+                height: calc(64px + env(safe-area-inset-top));
+                padding: env(safe-area-inset-top) 12px 0;
+            }
+            .mobile-brand { display: flex; align-items: center; gap: 8px; min-width: 0; color: #333; }
+            .mobile-brand img { width: 32px; height: 32px; flex: 0 0 32px; object-fit: contain; }
+            .mobile-brand span { font-size: 14px; font-weight: 700; line-height: 1.4; }
+            .mobile-brand small { display: block; font-size: 12px; font-weight: 400; color: #666; }
+            .toggle-btn { min-height: 44px; flex-shrink: 0; color: #333; background: #ffe3e8; }
+            .sidebar-backdrop {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 99;
+                border: 0;
+                padding: 0;
+                background: rgba(0,0,0,0.28);
+            }
+            .sidebar-backdrop[hidden] { display: none; }
             .control-panel {
                 position: fixed; top: 0; left: 0;
-                width: min(400px, 100vw);
+                width: min(400px, calc(100vw - 24px));
                 min-width: 0;
                 height: 100vh;
                 height: 100dvh;
                 box-sizing: border-box;
+                padding: 16px;
+                padding-top: max(16px, env(safe-area-inset-top));
                 padding-bottom: max(24px, env(safe-area-inset-bottom));
                 overflow-x: hidden;
                 overflow-y: scroll;
@@ -426,30 +457,84 @@
             .control-panel::-webkit-scrollbar-track { background: #eee; }
             .control-panel::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
             .control-panel.open { transform: translateX(0); }
-            .close-sidebar-btn { display: block; }
-            .display-area { width: 100%; height: calc(100vh - 50px); align-items: flex-start; }
-            .preview-layout { flex-direction: column; }
+            .sidebar-heading {
+                position: sticky;
+                top: -16px;
+                z-index: 2;
+                background: #fff;
+                padding: 12px 0;
+                margin-top: -12px;
+                box-shadow: 0 6px 6px #fff;
+            }
+            .sidebar-heading .brand-heading { gap: 8px; }
+            .sidebar-heading h2 { font-size: 16px; }
+            .sidebar-heading h2 span { display: block; white-space: nowrap; }
+            .sidebar-heading h2 .brand-separator { display: none; }
+            .sidebar-heading h2 wbr { display: none; }
+            .close-sidebar-btn {
+                display: grid;
+                place-items: center;
+                align-self: center;
+                flex: 0 0 44px;
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                font-size: 26px;
+                color: #444;
+                background: #fff;
+                border: 1px solid #ddd;
+            }
+            .control-panel .control-group { min-width: 0; }
+            .control-panel select, .custom-bag-size-fields input { min-height: 44px; font-size: 16px; box-sizing: border-box; width: 100%; min-width: 0; }
+            .control-panel .reset-custom-body, .skin-color-input { min-height: 44px; }
+            #custom-bag-upload { max-width: 100%; min-height: 44px; }
+            #custom-bag-upload::file-selector-button { min-height: 40px; }
+            .color-swatch { width: 40px; height: 40px; box-sizing: border-box; flex: 0 0 40px; }
+            .custom-color-swatch { width: 88px; height: 40px; flex-basis: 88px; }
+            .custom-bag-preview-row { min-height: 44px; }
+            .display-area {
+                display: block;
+                width: 100%;
+                height: auto;
+                min-height: 0;
+                min-width: 0;
+                box-sizing: border-box;
+                padding: 12px 12px max(16px, env(safe-area-inset-bottom));
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+            }
+            .preview-layout { flex-direction: column; width: 100%; gap: 12px; }
+            .canvas-viewport { position: relative; }
+            .canvas { position: absolute; top: 0; left: 0; transform-origin: top left; }
             .reference-gallery {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                width: min(550px, calc(100vw - 24px));
+                width: 100%;
+                gap: 8px;
             }
-            .reference-slot { width: auto; }
+            .reference-slot { width: 100%; min-width: 0; box-sizing: border-box; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .control-panel { transition: none; }
         }
     </style>
 </head>
 <body>
 
     <div class="mobile-header">
-        <button class="toggle-btn" onclick="toggleSidebar()">☰ 選單設定</button>
+        <div class="mobile-brand"><img src="creator-logo.png" alt="" width="32" height="32"><span>墨魚吐司製造所<small>娃包配件試搭室</small></span></div>
+        <button class="toggle-btn" id="settings-toggle" aria-expanded="false" aria-controls="sidebar" onclick="toggleSidebar()">☰ 設定</button>
     </div>
-
+    <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="關閉設定選單" tabindex="-1" hidden onclick="toggleSidebar(false)"></button>
     <div class="control-panel" id="sidebar">
-        <button class="close-sidebar-btn" onclick="toggleSidebar()">✕ 收起選單</button>
+        <div class="sidebar-heading">
         <div class="brand-heading">
             <button class="creator-logo-button" id="creator-info-open" type="button" aria-label="製作者資訊" title="製作者資訊" aria-haspopup="dialog" aria-controls="creator-info-dialog">
                 <img src="creator-logo.png" alt="墨魚吐司 LOGO" width="44" height="44">
             </button>
-            <h2>墨魚吐司製造所｜<wbr>娃包配件試搭室</h2>
+            <h2><span>墨魚吐司製造所</span><span class="brand-separator">｜</span><wbr><span>娃包配件試搭室</span></h2>
+        </div>
+        <button class="close-sidebar-btn" type="button" aria-label="收起選單" title="收起選單" onclick="toggleSidebar(false)">&times;</button>
         </div>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 0;">
         
@@ -531,6 +616,7 @@
 
     <div class="display-area">
         <div class="preview-layout">
+        <div class="canvas-viewport">
         <div class="canvas">
             <div class="doll-stage">
                 <div id="doll-skin-fill" class="doll-skin-fill"></div>
@@ -553,6 +639,7 @@
                     <div class="bag-measure-height"><span id="custom-bag-height-label" class="bag-measure-value"></span></div>
                 </div>
             </div>
+        </div>
         </div>
         <aside id="reference-gallery" class="reference-gallery" aria-label="實品參考圖片" hidden>
             <button class="reference-slot" type="button" aria-label="放大包包實品參考圖一" aria-haspopup="dialog" aria-controls="reference-lightbox"><img id="reference-image-1" loading="lazy" alt="包包實品參考圖一"></button>
@@ -628,8 +715,51 @@
         const customSkinColor = document.getElementById('custom-skin-color');
         const dollMask = document.getElementById('doll-mask');
         const canvas = document.querySelector('.canvas');
+        const mobileLayoutMedia = window.matchMedia('(max-width: 768px), (max-width: 1024px) and (pointer: coarse)');
 
-        function toggleSidebar() { sidebar.classList.toggle('open'); }
+        function toggleSidebar(forceOpen) {
+            const open = typeof forceOpen === 'boolean' ? forceOpen : !sidebar.classList.contains('open');
+            sidebar.classList.toggle('open', open);
+            const mobile = mobileLayoutMedia.matches;
+            sidebar.inert = mobile && !open;
+            document.querySelector('.display-area').inert = mobile && open;
+            document.querySelector('.mobile-header').inert = mobile && open;
+            document.getElementById('sidebar-backdrop').hidden = !open;
+            document.getElementById('settings-toggle').setAttribute('aria-expanded', String(open));
+            if (open) sidebar.querySelector('.close-sidebar-btn').focus({ preventScroll: true });
+            else document.getElementById('settings-toggle').focus({ preventScroll: true });
+        }
+
+        function fitMobilePreview() {
+            const viewport = document.querySelector('.canvas-viewport');
+            sidebar.inert = mobileLayoutMedia.matches && !sidebar.classList.contains('open');
+            if (!mobileLayoutMedia.matches) {
+                viewport.style.width = '';
+                viewport.style.height = '';
+                canvas.style.transform = '';
+                canvas.style.removeProperty('--preview-scale');
+                if (sidebar.classList.contains('open')) toggleSidebar(false);
+                document.querySelector('.display-area').inert = false;
+                document.querySelector('.mobile-header').inert = false;
+                return;
+            }
+            const area = document.querySelector('.display-area');
+            const style = getComputedStyle(area);
+            const availableWidth = area.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+            // Scale only the presentation; layer coordinates and cm calibration stay unchanged.
+            const scale = Math.min(1, Math.max(0, availableWidth) / canvas.offsetWidth);
+            viewport.style.width = `${canvas.offsetWidth * scale}px`;
+            viewport.style.height = `${canvas.offsetHeight * scale}px`;
+            canvas.style.transform = `scale(${scale})`;
+            canvas.style.setProperty('--preview-scale', scale);
+        }
+
+        window.addEventListener('resize', fitMobilePreview);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !document.querySelector('dialog[open]') && sidebar.classList.contains('open')) {
+                toggleSidebar(false);
+            }
+        });
 
         function updateSubCategory() {
             const selectedMain = mainCategory.value;
@@ -691,6 +821,7 @@
             canvas.style.height = `${preset.canvasSizePx}px`;
             canvas.style.minWidth = `${preset.canvasSizePx}px`;
             canvas.style.minHeight = `${preset.canvasSizePx}px`;
+            fitMobilePreview();
             if (activeDollValue !== subCategory.value) {
                 activeDollValue = subCategory.value;
                 resetBagCalibrationForDoll();
