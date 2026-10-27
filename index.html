@@ -516,6 +516,7 @@
             }
             .reference-slot { width: 100%; min-width: 0; box-sizing: border-box; }
             .bag-section-divider, #desktop-bag-options-host { display: none; }
+            .control-panel.open .bag-section-divider, .control-panel.open #desktop-bag-options-host { display: block; }
             .mobile-bag-controls {
                 display: block;
                 width: 100%;
@@ -539,11 +540,13 @@
             .mobile-bag-controls[open] summary { border-bottom: 1px solid #eee; }
             #mobile-bag-options-host { padding: 12px; }
             .mobile-bag-controls .dynamic-group { background: transparent; border: 0; border-radius: 0; padding: 0; }
-            .mobile-bag-controls .bag-options.has-cat-pattern { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-            .mobile-bag-controls .has-cat-pattern > .control-group { grid-column: 1; grid-row: 1; }
-            .mobile-bag-controls .has-cat-pattern #dynamic-options { display: contents; }
-            .mobile-bag-controls .has-cat-pattern #dynamic-options > * { grid-column: 1 / -1; }
-            .mobile-bag-controls .has-cat-pattern #dynamic-options > .cat-pattern-control { grid-column: 2; grid-row: 1; }
+            .bag-options.has-cat-pattern { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            .has-cat-pattern > .control-group { grid-column: 1; grid-row: 1; }
+            .has-cat-pattern #dynamic-options { display: contents; }
+            .has-cat-pattern #dynamic-options > * { grid-column: 1 / -1; }
+            .has-cat-pattern #dynamic-options > .cat-pattern-control { grid-column: 2; grid-row: 1; }
+            .has-cat-pattern #dynamic-options > .hardware-control { grid-column: 1; }
+            .has-cat-pattern #dynamic-options > .finishing-control { grid-column: 2; }
         }
         @media (prefers-reduced-motion: reduce) {
             .control-panel { transition: none; }
@@ -765,6 +768,7 @@
             document.querySelector('.mobile-header').inert = mobile && open;
             document.getElementById('sidebar-backdrop').hidden = !open;
             document.getElementById('settings-toggle').setAttribute('aria-expanded', String(open));
+            fitMobilePreview();
             if (open) sidebar.querySelector('.close-sidebar-btn').focus({ preventScroll: true });
             else document.getElementById('settings-toggle').focus({ preventScroll: true });
         }
@@ -772,7 +776,8 @@
         function fitMobilePreview() {
             const viewport = document.querySelector('.canvas-viewport');
             const bagOptions = document.getElementById('bag-options');
-            const bagHost = document.getElementById(mobileLayoutMedia.matches ? 'mobile-bag-options-host' : 'desktop-bag-options-host');
+            const inlineControls = mobileLayoutMedia.matches && !sidebar.classList.contains('open');
+            const bagHost = document.getElementById(inlineControls ? 'mobile-bag-options-host' : 'desktop-bag-options-host');
             if (bagOptions.parentElement !== bagHost) bagHost.appendChild(bagOptions);
             sidebar.inert = mobileLayoutMedia.matches && !sidebar.classList.contains('open');
             if (!mobileLayoutMedia.matches) {
@@ -1086,7 +1091,7 @@
                 </div>
                 <div id="color-pickers-zone"></div>
                 <hr style="border: 0; border-top: 1px solid #e6e6e6; margin: 2px 0;">
-                <div class="control-group">
+                <div class="control-group hardware-control">
                     <label>五金顏色</label>
                     <select onchange="currentHardware=this.value; refreshLayers();">
                         <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>金</option>
@@ -1095,7 +1100,7 @@
                         <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>槍黑</option>
                     </select>
                 </div>
-                <div class="control-group">
+                <div class="control-group finishing-control">
                     <label>燙金/壓印加工</label>
                     <select onchange="currentExpression=this.value; refreshLayers();">
                         <option value="face-none" ${currentExpression==='face-none'?'selected':''}>無加工</option>
