@@ -663,6 +663,7 @@
                 <div id="layer-strap" class="strap-layer"></div>
 
                 <canvas id="layer-main-color" class="bag-layer" width="397" height="316" style="z-index:10;"></canvas>
+                <canvas id="layer-cylinder-belt" class="bag-layer" width="330" height="263" style="z-index:11; display:none;"></canvas>
 
                 <canvas id="layer-tuxedo-color" class="bag-layer" width="397" height="316" style="z-index:11; display:none;"></canvas>
 
@@ -713,6 +714,7 @@
 
         let currentMainColor = '#d4a373';
         let currentCylinderColor = '#f8f9fa';
+        let currentCylinderBeltColor = '#f8f9fa';
         let currentTuxedoColor = '#f8f9fa';
         let currentHardware = 'hw-gold';
         let currentExpression = 'face-none';
@@ -1068,6 +1070,10 @@
                         <div class="color-palette" id="main-pal"></div>
                     </div>
                     <div class="control-group">
+                        <label>皮帶顏色</label>
+                        <div class="color-palette" id="cylinder-belt-pal"></div>
+                    </div>
+                    <div class="control-group">
                         <label>五金顏色</label>
                         <select onchange="currentHardware=this.value; refreshLayers();">
                             <option value="hw-gold" ${currentHardware==='hw-gold'?'selected':''}>金</option>
@@ -1078,6 +1084,7 @@
                     </div>
                 `;
                 buildPalette('main-pal', 'cylinder');
+                buildPalette('cylinder-belt-pal', 'cylinderBelt');
                 return;
             }
             panel.innerHTML = `
@@ -1133,16 +1140,18 @@
         function buildPalette(targetId, type) {
             const target = document.getElementById(targetId);
             if(!target) return;
-            const isCustomizable = ['main', 'cylinder', 'tuxedo'].includes(type);
+            const isCustomizable = ['main', 'cylinder', 'cylinderBelt', 'tuxedo'].includes(type);
             const getCurrentColor = () => {
                 if(type === 'main') return currentMainColor;
                 if(type === 'cylinder') return currentCylinderColor;
+                if(type === 'cylinderBelt') return currentCylinderBeltColor;
                 if(type === 'tuxedo') return currentTuxedoColor;
                 return '#ffffff';
             };
             const setCurrentColor = (hex) => {
                 if(type === 'main') { currentMainColor = hex; }
                 if(type === 'cylinder') { currentCylinderColor = hex; }
+                if(type === 'cylinderBelt') { currentCylinderBeltColor = hex; }
                 if(type === 'tuxedo') { currentTuxedoColor = hex; }
             };
             paletteColors.forEach(color => {
@@ -1151,16 +1160,12 @@
                 swatch.style.backgroundColor = color.hex;
                 swatch.title = `${color.name} ${color.hex}`;
                 
-                if(type === 'main' && color.hex === currentMainColor) swatch.classList.add('active');
-                if(type === 'cylinder' && color.hex === currentCylinderColor) swatch.classList.add('active');
-                if(type === 'tuxedo' && color.hex === currentTuxedoColor) swatch.classList.add('active');
+                if(color.hex.toLowerCase() === getCurrentColor().toLowerCase()) swatch.classList.add('active');
 
                 swatch.onclick = function() {
                     target.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
                     swatch.classList.add('active');
-                    if(type === 'main') { currentMainColor = color.hex; }
-                    if(type === 'cylinder') { currentCylinderColor = color.hex; }
-                    if(type === 'tuxedo') { currentTuxedoColor = color.hex; }
+                    setCurrentColor(color.hex);
                     const customInput = target.querySelector('.custom-color-input');
                     if (customInput) customInput.value = color.hex;
                     refreshLayers();
@@ -1172,7 +1177,7 @@
                 customInput.type = 'color';
                 customInput.className = 'custom-color-input';
                 customInput.value = getCurrentColor();
-                customInput.setAttribute('aria-label', type === 'tuxedo' ? '自訂區塊顏色' : '自訂包包顏色');
+                customInput.setAttribute('aria-label', type === 'cylinderBelt' ? '自訂皮帶顏色' : (type === 'tuxedo' ? '自訂區塊顏色' : '自訂包包顏色'));
 
                 const customSwatch = document.createElement('label');
                 customSwatch.className = 'color-swatch custom-color-swatch';
@@ -1346,6 +1351,7 @@
             const topPx = bagCenterY - (heightPx / 2);
             const layerIds = [
                 'layer-main-color',
+                'layer-cylinder-belt',
                 'layer-tuxedo-color',
                 'layer-calico',
                 'layer-main-line',
@@ -1394,6 +1400,8 @@
         function refreshLayers() {
             // 著色底層 DOM
             const lMainColor = document.getElementById('layer-main-color');
+            const lCylinderBelt = document.getElementById('layer-cylinder-belt');
+            lCylinderBelt.style.display = bagStyle.value === 'cylinder' ? 'block' : 'none';
             const lTuxColor = document.getElementById('layer-tuxedo-color');
             const lCalico = document.getElementById('layer-calico');
             
@@ -1454,6 +1462,7 @@
             if (bagStyle.value === 'cylinder') {
                 lMainColor.style.display = 'block';
                 setMaskLayer(lMainColor, 'bags/cylinder/cylinder_base_mask.png', currentCylinderColor);
+                setMaskLayer(lCylinderBelt, 'bags/cylinder/cylinder_belt_mask.png', currentCylinderBeltColor);
                 lTuxColor.style.display = 'none';
                 lCalico.style.display = 'none';
                 lFace.style.display = 'none';
