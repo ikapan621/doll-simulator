@@ -1007,6 +1007,9 @@
 
         function renderControlPanel() {
             const panel = document.getElementById('dynamic-options');
+            if (bagStyle.value === 'cat' && currentCatPattern === 'tuxedo' && currentExpression.startsWith('face-foil-')) {
+                currentExpression = 'face-none';
+            }
             document.getElementById('bag-options').classList.toggle('has-cat-pattern', bagStyle.value === 'cat');
             document.getElementById('custom-bag-disclaimer').hidden = bagStyle.value !== 'custom_upload';
             if (bagStyle.value === 'custom_upload') {
@@ -1113,14 +1116,16 @@
                     </select>
                 </div>
                 <div class="control-group finishing-control">
-                    <label>燙金/壓印加工</label>
-                    <select onchange="currentExpression=this.value; refreshLayers();">
+                    <label for="cat-finishing-select">${currentCatPattern === 'tuxedo' ? '壓印加工' : '燙金/壓印加工'}</label>
+                    <select id="cat-finishing-select" onchange="currentExpression=this.value; refreshLayers();">
                         <option value="face-none" ${currentExpression==='face-none'?'selected':''}>無加工</option>
                         <option value="face-emboss" ${currentExpression==='face-emboss'?'selected':''}>壓印</option>
+                        ${currentCatPattern === 'tuxedo' ? '' : `
                         <option value="face-foil-gold" ${currentExpression==='face-foil-gold'?'selected':''}>燙金-金</option>
                         <option value="face-foil-silver" ${currentExpression==='face-foil-silver'?'selected':''}>燙金-銀</option>
                         <option value="face-foil-rose" ${currentExpression==='face-foil-rose'?'selected':''}>燙金-玫瑰金</option>
                         <option value="face-foil-black" ${currentExpression==='face-foil-black'?'selected':''}>燙金-黑</option>
+                        `}
                     </select>
                 </div>
             `;
@@ -1508,7 +1513,7 @@
             }
 
             // 3. 表情加工變色（利用覆蓋全網頁支援的精準反轉色矩陣）
-            if (currentExpression === 'face-none') {
+            if (currentExpression === 'face-none' || (currentCatPattern === 'tuxedo' && currentExpression.startsWith('face-foil-'))) {
                 lFace.style.display = 'none';
             } else {
                 lFace.style.display = 'block';
