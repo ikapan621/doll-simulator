@@ -732,6 +732,9 @@
         const LARGE_CANVAS_SIZE_PX = Math.round(STANDARD_CANVAS_SIZE_PX * (3262 / 2254));
         const OB11_REFERENCE_HEIGHT_CM = 12.5;
         const STANDARD_PX_PER_CM = (STANDARD_CANVAS_SIZE_PX * 0.6767) / OB11_REFERENCE_HEIGHT_CM;
+        // P9 artwork spans 1609px from bald head to soles on its 2254px-wide source canvas.
+        const P9_REFERENCE_HEIGHT_CM = 13;
+        const P9_PX_PER_CM = (STANDARD_CANVAS_SIZE_PX * 1609 / 2254) / P9_REFERENCE_HEIGHT_CM;
         const bagStyleConfigs = {
             cat: { imageRatio: 397 / 316, strapAnchor: { xRatio: 0.045, yRatio: 0.04 }, strapColor: null },
             toast: { imageRatio: 378 / 354, strapAnchor: { xRatio: 0.064, yRatio: 0.22 }, strapColor: '#481502' },
@@ -743,7 +746,7 @@
         const dollScalePresets = {
             'OB11': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: STANDARD_PX_PER_CM, bodyLeftRatio: 0.3762, bodyTopRatio: 0.2060, strapShoulderXRatio: 0.46, strapShoulderYRatio: 0.43, bagXcm: 3.81, bagYcm: 7.61, bagSizeCm: 3.0, bagRotationDeg: -4 },
             '黏土娃': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: (STANDARD_CANVAS_SIZE_PX * 0.6306) / 11.1, bodyLeftRatio: 0.3940, bodyTopRatio: 0.2567, strapShoulderXRatio: 0.46, strapShoulderYRatio: 0.47, bagXcm: 3.41, bagYcm: 6.87, bagSizeCm: 3.0, bagRotationDeg: -4 },
-            'P9': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: STANDARD_PX_PER_CM, bodyLeftRatio: 0.3540, bodyTopRatio: 0.2034, strapShoulderXRatio: 0.425, strapShoulderYRatio: 0.455, bagXcm: 3.92, bagYcm: 7.67, bagSizeCm: 3.0, bagRotationDeg: -4 },
+            'P9': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: P9_PX_PER_CM, positionPxPerCm: STANDARD_PX_PER_CM, strapWidthPx: STRAP_WIDTH_CM * STANDARD_PX_PER_CM, bodyLeftRatio: 0.3540, bodyTopRatio: 0.2034, strapShoulderXRatio: 0.425, strapShoulderYRatio: 0.455, bagXcm: 3.92, bagYcm: 7.67, bagSizeCm: 3.0, bagRotationDeg: -4 },
             '自訂尺寸': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: STANDARD_PX_PER_CM, bodyLeftRatio: 0.3762, bodyTopRatio: 0.2060, strapShoulderXRatio: 0.46, strapShoulderYRatio: 0.43, bagXcm: 3.81, bagYcm: 7.61, bagSizeCm: 3.0, bagRotationDeg: -4 },
             '10cm': { canvasSizePx: STANDARD_CANVAS_SIZE_PX, pxPerCm: (STANDARD_CANVAS_SIZE_PX * 0.6708) / 10, bodyLeftRatio: 0.2848, bodyTopRatio: 0.2142, strapShoulderXRatio: 0.300, strapShoulderYRatio: 0.530, bagXcm: 4.95, bagYcm: 7.89, bagSizeCm: 3.0, bagRotationDeg: -4 },
             '20cm': { canvasSizePx: LARGE_CANVAS_SIZE_PX, pxPerCm: (LARGE_CANVAS_SIZE_PX * 0.7823) / 20, bodyLeftRatio: 0.2765, bodyTopRatio: 0.1422, strapShoulderXRatio: 0.283, strapShoulderYRatio: 0.467, bagXcm: 8.96, bagYcm: 14.86, bagSizeCm: 3.0, bagRotationDeg: -4 }
@@ -1321,7 +1324,7 @@
             const shoulderY = hardwareY - ((hardwareY - baseShoulderY) * lengthRatio);
             const deltaX = hardwareX - shoulderX;
             const deltaY = hardwareY - shoulderY;
-            const strapWidth = STRAP_WIDTH_CM * preset.pxPerCm;
+            const strapWidth = preset.strapWidthPx ?? STRAP_WIDTH_CM * preset.pxPerCm;
 
             strap.style.display = 'block';
             strap.style.left = `${shoulderX}px`;
@@ -1336,6 +1339,7 @@
             const preset = dollScalePresets[subCategory.value] || dollScalePresets['OB11'];
             const styleConfig = bagStyleConfigs[bagStyle.value];
             const pxPerCm = preset.pxPerCm;
+            const positionPxPerCm = preset.positionPxPerCm ?? pxPerCm;
             const isCustomUpload = bagStyle.value === 'custom_upload';
             const customSize = getCustomBagSizeCm();
             const widthCm = isCustomUpload ? customSize.width : bagCalibration.sizeCm;
@@ -1347,8 +1351,8 @@
             const customAnchors = subCategory.value === '自訂尺寸' && typeof window.getCustomBodyAnchors === 'function'
                 ? window.getCustomBodyAnchors()
                 : null;
-            const bagCenterX = customAnchors ? customAnchors.hip.x : originX + (bagCalibration.xCm * pxPerCm);
-            const bagCenterY = customAnchors ? customAnchors.hip.y : originY + (bagCalibration.yCm * pxPerCm);
+            const bagCenterX = customAnchors ? customAnchors.hip.x : originX + (bagCalibration.xCm * positionPxPerCm);
+            const bagCenterY = customAnchors ? customAnchors.hip.y : originY + (bagCalibration.yCm * positionPxPerCm);
             const leftPx = bagCenterX - (widthPx / 2);
             const topPx = bagCenterY - (heightPx / 2);
             const layerIds = [
