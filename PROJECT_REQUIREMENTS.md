@@ -132,6 +132,7 @@
 
 - 2026-10-16 新增：使用提供的「墨魚吐司A.png」原圖，專案內保存為 `creator-logo.png`。
 - LOGO 放在「墨魚吐司製造所｜娃包配件試搭室」標題前面，點擊開啟彈出視窗。
+- 點擊網站標題也開啟同一個製作者資訊視窗；桌面左上標題、手機頂部品牌／LOGO，以及手機設定內的標題皆可使用，並支援鍵盤操作。
 - 視窗內容：`製作者：@ikapan621`、可點擊連結 https://lit.link/zh-tw/ikapan621，以及「BUG回報與建議」連結；不再顯示 Plurk 連結。
 - 「BUG回報與建議」連到 https://docs.google.com/forms/d/e/1FAIpQLSdjTFnIuiBlu2uwCnOAAHg_P2z6VnVZQC-gSP0JYOghjZchWA/viewform?usp=publish-editor ，在新分頁開啟。
 - 支援關閉按鈕、Escape、點擊背景關閉。

@@ -74,6 +74,8 @@
         h2 { margin: 0 0 5px 0; font-size: 1.4rem; color: #333; }
         .brand-heading { display: flex; align-items: center; gap: 10px; }
         .brand-heading h2 { margin: 0; min-width: 0; font-size: 1.15rem; line-height: 1.45; }
+        .brand-title-button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+        .brand-title-button:focus-visible, .mobile-brand:focus-visible { outline: 2px solid #555; outline-offset: 2px; }
         .sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .sidebar-backdrop { display: none; }
         .canvas-viewport { flex: 0 0 auto; }
@@ -420,7 +422,7 @@
                 height: calc(64px + env(safe-area-inset-top));
                 padding: env(safe-area-inset-top) 12px 0;
             }
-            .mobile-brand { display: flex; align-items: center; gap: 8px; min-width: 0; color: #333; }
+            .mobile-brand { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0; border: 0; background: transparent; color: #333; font: inherit; text-align: left; cursor: pointer; }
             .mobile-brand img { width: 32px; height: 32px; flex: 0 0 32px; object-fit: contain; }
             .mobile-brand span { font-size: 14px; font-weight: 700; line-height: 1.4; }
             .mobile-brand small { display: block; font-size: 12px; font-weight: 400; color: #666; }
@@ -556,17 +558,17 @@
 <body>
 
     <div class="mobile-header">
-        <div class="mobile-brand"><img src="creator-logo.png" alt="" width="32" height="32"><span>墨魚吐司製造所<small>娃包配件試搭室</small></span></div>
+        <button class="mobile-brand" type="button" data-creator-info-open aria-haspopup="dialog" aria-controls="creator-info-dialog" title="製作者資訊"><img src="creator-logo.png" alt="" width="32" height="32"><span>墨魚吐司製造所<small>娃包配件試搭室</small></span></button>
         <button class="toggle-btn" id="settings-toggle" aria-expanded="false" aria-controls="sidebar" onclick="toggleSidebar()">☰ 設定</button>
     </div>
     <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="關閉設定選單" tabindex="-1" hidden onclick="toggleSidebar(false)"></button>
     <div class="control-panel" id="sidebar">
         <div class="sidebar-heading">
         <div class="brand-heading">
-            <button class="creator-logo-button" id="creator-info-open" type="button" aria-label="製作者資訊" title="製作者資訊" aria-haspopup="dialog" aria-controls="creator-info-dialog">
+            <button class="creator-logo-button" id="creator-info-open" type="button" data-creator-info-open aria-label="製作者資訊" title="製作者資訊" aria-haspopup="dialog" aria-controls="creator-info-dialog">
                 <img src="creator-logo.png" alt="墨魚吐司 LOGO" width="44" height="44">
             </button>
-            <h2><span>墨魚吐司製造所</span><span class="brand-separator">｜</span><wbr><span>娃包配件試搭室</span></h2>
+            <h2><button class="brand-title-button" type="button" data-creator-info-open aria-haspopup="dialog" aria-controls="creator-info-dialog" title="製作者資訊"><span>墨魚吐司製造所</span><span class="brand-separator">｜</span><wbr><span>娃包配件試搭室</span></button></h2>
         </div>
         <button class="close-sidebar-btn" type="button" aria-label="收起選單" title="收起選單" onclick="toggleSidebar(false)">&times;</button>
         </div>
@@ -1554,7 +1556,9 @@
         lightbox.addEventListener('close', () => lightboxImage.removeAttribute('src'));
 
         const creatorDialog = document.getElementById('creator-info-dialog');
-        document.getElementById('creator-info-open').addEventListener('click', () => creatorDialog.showModal());
+        document.querySelectorAll('[data-creator-info-open]').forEach((button) => {
+            button.addEventListener('click', () => creatorDialog.showModal());
+        });
         document.getElementById('creator-info-close').addEventListener('click', () => creatorDialog.close());
         creatorDialog.addEventListener('click', (event) => {
             if (event.target !== creatorDialog) return;
