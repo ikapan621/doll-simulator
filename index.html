@@ -549,6 +549,7 @@
             .has-cat-pattern #dynamic-options > .cat-pattern-control { grid-column: 2; grid-row: 1; }
             .has-cat-pattern #dynamic-options > .hardware-control { grid-column: 1; }
             .has-cat-pattern #dynamic-options > .finishing-control { grid-column: 2; }
+            .has-cat-pattern #dynamic-options > .hardware-control:last-child { grid-column: 1 / -1; }
         }
         @media (prefers-reduced-motion: reduce) {
             .control-panel { transition: none; }
@@ -1007,7 +1008,7 @@
 
         function renderControlPanel() {
             const panel = document.getElementById('dynamic-options');
-            if (bagStyle.value === 'cat' && currentCatPattern === 'tuxedo' && currentExpression.startsWith('face-foil-')) {
+            if (bagStyle.value === 'cat' && currentCatPattern === 'tuxedo') {
                 currentExpression = 'face-none';
             }
             document.getElementById('bag-options').classList.toggle('has-cat-pattern', bagStyle.value === 'cat');
@@ -1115,19 +1116,19 @@
                         <option value="hw-black" ${currentHardware==='hw-black'?'selected':''}>槍黑</option>
                     </select>
                 </div>
+                ${currentCatPattern === 'tuxedo' ? '' : `
                 <div class="control-group finishing-control">
-                    <label for="cat-finishing-select">${currentCatPattern === 'tuxedo' ? '壓印加工' : '燙金/壓印加工'}</label>
+                    <label for="cat-finishing-select">燙金/壓印加工</label>
                     <select id="cat-finishing-select" onchange="currentExpression=this.value; refreshLayers();">
                         <option value="face-none" ${currentExpression==='face-none'?'selected':''}>無加工</option>
                         <option value="face-emboss" ${currentExpression==='face-emboss'?'selected':''}>壓印</option>
-                        ${currentCatPattern === 'tuxedo' ? '' : `
                         <option value="face-foil-gold" ${currentExpression==='face-foil-gold'?'selected':''}>燙金-金</option>
                         <option value="face-foil-silver" ${currentExpression==='face-foil-silver'?'selected':''}>燙金-銀</option>
                         <option value="face-foil-rose" ${currentExpression==='face-foil-rose'?'selected':''}>燙金-玫瑰金</option>
                         <option value="face-foil-black" ${currentExpression==='face-foil-black'?'selected':''}>燙金-黑</option>
-                        `}
                     </select>
                 </div>
+                `}
             `;
 
             const zone = document.getElementById('color-pickers-zone');
@@ -1513,7 +1514,7 @@
             }
 
             // 3. 表情加工變色（利用覆蓋全網頁支援的精準反轉色矩陣）
-            if (currentExpression === 'face-none' || (currentCatPattern === 'tuxedo' && currentExpression.startsWith('face-foil-'))) {
+            if (currentExpression === 'face-none' || currentCatPattern === 'tuxedo') {
                 lFace.style.display = 'none';
             } else {
                 lFace.style.display = 'block';
